@@ -1,0 +1,2 @@
+# gpu_bidirectional_raytracer
+A ray tracer written in C/C-CUDA running in GPGPU
