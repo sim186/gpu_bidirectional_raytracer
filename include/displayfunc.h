@@ -13,17 +13,17 @@
 #include "vec.h"
 
 extern int width;
-extern float invWidth;
+extern float inverse_width;
 extern int height;
-extern float invHeight;
+extern float inverse_height;
 extern uchar4 *pixels;
 extern unsigned int *counter;
 extern unsigned int renderingFlags;
-extern char captionBuffer[256];
+extern char caption_buffer[256];
 
-extern int amiSmallptCPU;
+extern int is_smallpt_cpu;
 
-extern void InitGlut(int argc, char *argv[], char *windowTittle);
+extern void InitGlut(int argc, char *argv[], char *window_title);
 extern double WallClockTime();
 
 extern void ReadScene(char *);

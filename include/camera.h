@@ -1,8 +1,6 @@
 #ifndef _CAMERA_H
 #define	_CAMERA_H
 
-//#include "cuPrintf.cuh"
-//#include "cuPrintf.cu"
 #include "vec.h"
 
 

@@ -9,13 +9,13 @@ __device__ static float tol=TOL;
 
 __device__ static bool vecmul(Vec *inout, Vec mul) {
 
-bool stoppa=false;
+bool should_stop = false;
 float temp;
 
 if (inout->x!=0.f&&mul.x!=0.f) {
 	temp=inout->x*mul.x;
 	if (temp<=tol||inout->x==temp)
-		stoppa=true;
+		should_stop=true;
 	else
 	 	inout->x=temp;
 	}
@@ -25,7 +25,7 @@ else
 if (inout->y!=0.f&&mul.y!=0.f) {
 	temp=inout->y*mul.y;
 	if (temp<=tol||inout->y==temp)
-		stoppa=true;
+		should_stop=true;
 	else
 	 	inout->y=temp;
 	}
@@ -35,25 +35,25 @@ else
 if (inout->z!=0.f&&mul.z!=0.f) {
 	temp=inout->z*mul.z;
 	if (temp<=tol||inout->z==temp)
-		stoppa=true;
+		should_stop=true;
 	else
 	 	inout->z=temp;
 	}
 else
 	inout->z=0.f;
-return stoppa;
+return should_stop;
 }
 
 
 __device__ static bool vecsmul(Vec *inout, float mul) {
 
-bool stoppa=false;
+bool should_stop = false;
 float temp;
 
 if (inout->x!=0.f&&mul!=0.f) {
 	temp=inout->x*mul;
 	if (temp<=tol||inout->x==temp)
-		stoppa=true;
+		should_stop=true;
 	else
 	 	inout->x=temp;
 	}
@@ -63,7 +63,7 @@ else
 if (inout->y!=0.f&&mul!=0.f) {
 	temp=inout->y*mul;
 	if (temp<=tol||inout->y==temp)
-		stoppa=true;
+		should_stop=true;
 	else
 	 	inout->y=temp;
 	}
@@ -73,13 +73,13 @@ else
 if (inout->z!=0.f&&mul!=0.f) {
 	temp=inout->z*mul;
 	if (temp<=tol||inout->z==temp)
-		stoppa=true;
+		should_stop=true;
 	else
 	 	inout->z=temp;
 	}
 else
 	inout->z=0.f;
-return stoppa;
+return should_stop;
 }
 
 
@@ -333,7 +333,6 @@ __global__ void RadianceLightTracing_dev(
 
 
 //&&(len<=(t+0.001)
-			//if(id2==id){                   
                 if(depth < DEPTH){
 					depth_index = depth*LIGHT_POINTS+ind;
 					// depth_index = row*DEPTH + depth;
@@ -624,7 +623,6 @@ __global__ void RadiancePathTracing_dev(
 				//int j=(i+eyeSample+depth*(pC/6))%(pC/2);
 				//int j=(i*eyeSample*nn*depth)%(pC-4);
 				int j=(nn*26+i*25+depth*5+sid)%(pC-5);
-				//if(j<0) j=-j;	
 				// Removed Russian Roulette in order to improve execution on SIMT
 				if (depth > 6) {
 					r = rad;

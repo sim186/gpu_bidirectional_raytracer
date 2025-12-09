@@ -1,0 +1,33 @@
+# Compiled executables
+smallptCPU
+smallptGPU
+SmallptGPU-v1.6
+
+# Object files
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+
+# Build artifacts
+*.ppm
+*.tgz
+preprocessed_rendering_kernel.cl
+a.out
+core
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary files
+*.tmp
+*.bak
+
+# CodeQL analysis
+_codeql_detected_source_root
