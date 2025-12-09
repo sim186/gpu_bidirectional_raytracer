@@ -333,7 +333,6 @@ __global__ void RadianceLightTracing_dev(
 
 
 //&&(len<=(t+0.001)
-			//if(id2==id){                   
                 if(depth < DEPTH){
 					depth_index = depth*LIGHT_POINTS+ind;
 					// depth_index = row*DEPTH + depth;
@@ -624,7 +623,6 @@ __global__ void RadiancePathTracing_dev(
 				//int j=(i+eyeSample+depth*(pC/6))%(pC/2);
 				//int j=(i*eyeSample*nn*depth)%(pC-4);
 				int j=(nn*26+i*25+depth*5+sid)%(pC-5);
-				//if(j<0) j=-j;	
 				// Removed Russian Roulette in order to improve execution on SIMT
 				if (depth > 6) {
 					r = rad;

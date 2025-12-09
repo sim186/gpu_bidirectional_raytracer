@@ -45,47 +45,46 @@ int pixelCount;
 
 
 
-
-//ceil(a / b)
-extern "C" int iDivUp(int a, int b){
-    return ((a % b) != 0) ? (a / b + 1) : (a / b);
+/* Divide a by b, rounding up to the nearest integer */
+extern "C" int DivideRoundUp(int a, int b){
+	return ((a % b) != 0) ? (a / b + 1) : (a / b);
 }
 
-//Align a to nearest higher multiple of b
-extern "C" int iAlignUp(int a, int b){
-    return ((a % b) != 0) ?  (a - a % b + b) : a;
+/* Align a to the nearest higher multiple of b */
+extern "C" int AlignUp(int a, int b){
+	return ((a % b) != 0) ?  (a - a % b + b) : a;
 }
 
-const int    PATH_N = 7680000;
-const int N_PER_RNG = iAlignUp(iDivUp(PATH_N, MT_RNG_COUNT), 2);
-const int    RAND_N = MT_RNG_COUNT * N_PER_RNG;
+const int PATH_N = 7680000;
+const int N_PER_RNG = AlignUp(DivideRoundUp(PATH_N, MT_RNG_COUNT), 2);
+const int RAND_N = MT_RNG_COUNT * N_PER_RNG;
 
 
 
-__global__ void RandomGPU(float *d_Random,int nPerRng);
+__global__ void RandomGPU(float *d_Random, int nPerRng);
 __global__ void BoxMullerGPU(float *d_Random, int nPerRng);
 void loadMTGPU(const char *fname);
 void seedMTGPU(unsigned int seed);
 void UpdateRendering(void);
 
 __global__ void get_ray(const Sphere light, Ray *dev_data, 
-                        float *d_Rand, int cS, 
-                        int pC,unsigned int sid);
-                        
+						float *d_Rand, int current_sample, 
+						int pixel_count, unsigned int sid);
+						
 __global__ void RadianceLightTracing_dev(Sphere *spheres, unsigned int sphereCount, 
-                                         Ray *startRay, float *d_Rand, int idlight, 
-                                         int pC, Camera camera, Vec *colors, 
-                                         unsigned int *counter, LightPath *dev_lp, 
-                                         float invWidth, float invHeight, 
-                                         float width, float height,unsigned int sid);
-                                         
+										 Ray *startRay, float *d_Rand, int light_id, 
+										 int pixel_count, Camera camera, Vec *colors, 
+										 unsigned int *counter, LightPath *dev_lp, 
+										 float inverse_width, float inverse_height, 
+										 float width, float height, unsigned int sid);
+										 
 __global__ void RadiancePathTracing_dev(Sphere *spheres, unsigned int sphereCount, 
-                                        float *d_Rand, int pC, Camera camera, 
-                                        Vec *colors,unsigned int *counter, 
-                                        uchar4 *pixels,float invWidth, 
-                                        float invHeight, float width, float height, 
-                                        unsigned int sid, unsigned int param,
-                                        LightPath *dev_lp, int vlp_index);
+										float *d_Rand, int pixel_count, Camera camera, 
+										Vec *colors, unsigned int *counter, 
+										uchar4 *pixels, float inverse_width, 
+										float inverse_height, float width, float height, 
+										unsigned int sid, unsigned int param,
+										LightPath *dev_lp, int vlp_index);
 
 void FreeBuffers() {
 	free(pixels);
@@ -99,25 +98,19 @@ void FreeBuffers() {
 	free(iteraz);
 	free(lp);
 	cudaFree(dev_lp);
-	
 }
 
-void createPBO(GLuint* pbo)
+void CreatePBO(GLuint* pbo)
 {
-
-  if (pbo) {
-    // set up vertex data parameter
-    int num_texels = width * height;
-    int num_values = num_texels * 4;
-    int size_tex_data = sizeof(GLubyte) * num_values;
-    
-    // Generate a buffer ID called a PBO (Pixel Buffer Object)
-    glGenBuffers(1,pbo);
-    // Make this the current UNPACK buffer (OpenGL is state-based)
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, *pbo);
-    // Allocate data for the buffer. 4-channel 8-bit image
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, size_tex_data, NULL, GL_DYNAMIC_COPY);
-    cudaGLRegisterBufferObject( *pbo );
+	if (pbo) {
+		int num_texels = width * height;
+		int num_values = num_texels * 4;
+		int size_tex_data = sizeof(GLubyte) * num_values;
+		
+		glGenBuffers(1, pbo);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, *pbo);
+		glBufferData(GL_PIXEL_UNPACK_BUFFER, size_tex_data, NULL, GL_DYNAMIC_COPY);
+		cudaGLRegisterBufferObject(*pbo);
   }
 }
 
@@ -234,7 +227,7 @@ void AllocateBuffers() {
 
 }
 
-void savePPM(int numbe){
+void SavePPM(int numbe){
 char name[32];
 cudaError_t error = cudaMemcpy(pixels, pixels_buf, sizeof(uchar4[pixelCount]), cudaMemcpyDeviceToHost);
 	    if (error != cudaSuccess) {
@@ -270,8 +263,8 @@ void UpdateRendering(void) {
 	dim3 dimGrid(ceil(width/float(dimBlock.x)),ceil(height/float(dimBlock.y)));
 	RadiancePathTracing_dev<<<dimGrid,dimBlock>>>(dev_spheres,sphereCount,
 	                                              d_Rand,RAND_N,camera,dev_colors,
-	                                              dev_counter,pixels_buf,invWidth,
-	                                              invHeight,width,height,sid,
+	                                              dev_counter,pixels_buf,inverse_width,
+	                                              inverse_height,width,height,sid,
 	                                              30000,dev_lp,vlp_index);
 	cudaThreadSynchronize();
 	
@@ -280,19 +273,15 @@ void UpdateRendering(void) {
 	const float elapsedTime = WallClockTime() - startTime;
 	TotalTime += elapsedTime;
 	const float sampleSec = height * width / elapsedTime;
-	//sprintf(captionBuffer, "Rendering time %.3f sec (pass %d)  Sample/sec  %.1fK\n",
 		//elapsedTime, currentSample, sampleSec / 1000.f);
 	printf("Rendering time %.3f sec (pass %d) Total:%.2f  Sample/sec  %.1fK\n",
 		elapsedTime, currentSample, TotalTime, sampleSec / 1000.f);
-		//if(currentSample==100) {savePPM(1); for(;;) printf("Loop\n");}
 
-//if(flag==1 || flag==2) flag++; //in questo caso lancio 2 volte il path tracing
 	//else flag=1;               //altrimenti rilancio il light
 	
 	
 	if(flag == MAX_ITER) {vlp_index+=MAX_VLP; flag=1;}
     if(flag < MAX_ITER) flag++; //in questo caso lancio 2 volte il path tracing
-    //flag=2;
 
 
 	
@@ -319,7 +308,6 @@ void UpdateRendering2(void) {
 					fprintf(stderr, "Unable to clean GPU data dev_counter: %s\n",
 					cudaGetErrorString(error));
 				}
-			    //printf("CC:%d\n",currentSample);
 				error = cudaGetLastError();
 				seedMTGPU(currentSample*5);
 				RandomGPU<<<32, 128>>>(d_Rand, N_PER_RNG);
@@ -342,7 +330,7 @@ void UpdateRendering2(void) {
 	     
 				RadianceLightTracing_dev<<<rayngrid,raynthread>>>(dev_spheres, sphereCount, dev_ray, d_Rand, i, 
 			                                                  RAND_N, camera, dev_colors, dev_counter, 
-			                                                  dev_lp, invWidth, invHeight, width, height, 
+			                                                  dev_lp, inverse_width, inverse_height, width, height, 
 			                                                  sid);
 				error = cudaGetLastError();
 				if (error != cudaSuccess) {
@@ -356,13 +344,10 @@ void UpdateRendering2(void) {
 				//cudaMemcpy(lp,dev_lp,size,cudaMemcpyDeviceToHost);
 				//int k,j;
 				//for(k=0;k<rayngrid*raynthread;k++){
-				    //printf("x=%.3f, %.3f, %.3f\n",lp[k].rad.x,lp[k].rad.y,lp[k].rad.z);
 			    //}
-			    //printf("x=%.3f, %.3f, %.3f\n",lp[0].hp.x,lp[0].hp.y,lp[0].hp.z);
 	        
 	            //for(j = 0; j < LIGHT_POINTS; j++){
 	                //for(k = 0; k < DEPTH; k++){
-						//printf("LightPath=%d, rad[%d](%.3f,%.3f,%.3f)\n",j,k*LIGHT_POINTS+j,lp[k*LIGHT_POINTS+j].rad.x ,lp[k*LIGHT_POINTS+j].rad.y,lp[k*LIGHT_POINTS+j].rad.z);
 					//}
 				//}
 	         
@@ -375,7 +360,6 @@ void UpdateRendering2(void) {
 			
 	    }
     }
-	//if(flag==1 || flag==2) flag++;
 	//else flag=1;
 	flag=2; //dopo una esecuzione di light ci sono due esecuzioni di path
 }
@@ -397,7 +381,6 @@ void ReInit(const int reallocBuffers) {
 	}
     ReInitCounter++;
 
-	//printf("ReinitCounter:%d\n",ReInitCounter);
 
 	UpdateCamera();
 	currentSample = 0;
@@ -407,7 +390,7 @@ void ReInit(const int reallocBuffers) {
 }
 
 int main(int argc, char *argv[]) {
-	amiSmallptCPU = 1;
+	is_smallpt_cpu = 1;
 
 
 	fprintf(stderr, "Usage: %s\n", argv[0]);
@@ -434,8 +417,8 @@ int main(int argc, char *argv[]) {
 		exit(-1);
 	height+=1;
 	width+=1;
-	invWidth=14./width;
-	invHeight=10.5/height;
+	inverse_width=14./width;
+	inverse_height=10.5/height;
 	UpdateCamera();
 
 	InitGlut(argc, argv, "DR");

@@ -6,7 +6,6 @@
 #ifdef WIN32
 #define _USE_MATH_DEFINES
 #endif
-//#include <math.h>
 
 #if defined(__linux__) || defined(__APPLE__)
 #include <sys/time.h>
@@ -29,7 +28,7 @@ extern void ReInitScene();
 extern void UpdateRendering2();
 extern void UpdateRendering();
 extern void UpdateCamera();
-extern void savePPM(int numbe);
+extern void SavePPM(int number);
 
 
 extern Camera camera;
@@ -41,23 +40,22 @@ extern GLuint pbo;
 extern GLuint textureID;
 extern uchar4 *pixels_buf;
 
-int amiSmallptCPU;
+int is_smallpt_cpu;
 extern int flag=1;
 extern int allFlag;
-float animTime=0.0f;
-float animInc=0.1f;
-int animFlag=1;
+float animation_time = 0.0f;
+float animation_increment = 0.1f;
+int animation_flag = 1;
 
 int width = 640;
-float invWidth;
+float inverse_width;
 int height = 480;
-float invHeight;
-//unsigned int *pixels;
+float inverse_height;
 uchar4 *pixels;
 unsigned int *counter;
-char captionBuffer[256];
+char caption_buffer[256];
 
-static int printHelp = 1;
+static int print_help = 1;
 static int currentSphere;
 
 double WallClockTime() {
@@ -149,10 +147,6 @@ void ReadScene(char *fileName) {
 				&s->e.x, &s->e.y, &s->e.z,
 				&s->c.x, &s->c.y, &s->c.z,
 				&mat);
-		/*if(!viszero(s->e)){
-			vnorm(s->e);
-			vsmul(s->e,1.6,s->e);
-		}*/
 		switch (mat) {
 			case 0:
 				s->refl = DIFF;
@@ -201,82 +195,47 @@ void idleFunc(void) {
 		exit(0);
 	}
 
-    //printf("IDLEFUNC\n");
-    printf("ff=%d\n",flag);
-	cudaError_t error=cudaGLMapBufferObject((void**)&pixels_buf, pbo);
+	printf("ff=%d\n",flag);
+	cudaError_t error = cudaGLMapBufferObject((void**)&pixels_buf, pbo);
 	if (error != cudaSuccess) {
-				fprintf(stderr, "Map Buffer failed: %s\n",
-				cudaGetErrorString(error));
+		fprintf(stderr, "Map Buffer failed: %s\n",
+		cudaGetErrorString(error));
 	}
 	if (flag==1){
-        printf("UP2\n");
+		printf("UP2\n");
 		UpdateRendering2();
 	}
-	//printf("IDLEFUNC-dopo flag\n");
 	if (flag>1){
-		//printf("UP\n");
-		//flag=1;
 		UpdateRendering();
-		//UpdateRendering2();
 	}
-	error=cudaGLUnmapBufferObject(pbo);
+	error = cudaGLUnmapBufferObject(pbo);
 	if (error != cudaSuccess) {
-				fprintf(stderr, "Unmap Buffer failed: %s\n",
-				cudaGetErrorString(error));
+		fprintf(stderr, "Unmap Buffer failed: %s\n",
+		cudaGetErrorString(error));
 	}
- //if(currentSample==100) {savePPM(1); for(;;) printf("Loop\n");}
 	glutPostRedisplay();
 }
-
-/*void GouraudPixel(int *writePixels) {
-	int i,j,k1,k2;
-	Vec temp;
-	for (i=0; i<height-1; i++){
-		for (j=0; j<width-1; j++){
-			k1=i*(width)+j;
-			k2=i*(width-1)+j;
-			temp.x=(colors[k1].x+colors2[k1].x+colors[k1+1].x+colors2[k1+1].x+colors[k1+1+width].x+colors2[k1+1+width].x+colors[k1+width].x+colors2[k1+width].x)/4;
-			temp.y=(colors[k1].y+colors2[k1].y+colors[k1+1].y+colors2[k1+1].y+colors[k1+1+width].y+colors2[k1+1+width].y+colors[k1+width].y+colors2[k1+width].y)/4;
-			temp.z=(colors[k1].z+colors2[k1].z+colors[k1+1].z+colors2[k1+1].z+colors[k1+1+width].z+colors2[k1+1+width].z+colors[k1+width].z+colors2[k1+width].z)/4;
-		//	writePixels[i*(width-1)+j]=(pixels[i*(width-1)+j]+pixels[i*(width-1)+j+1]+pixels[(i+1)*(width-1)+j]+pixels[(i+1)*(width-1)+j+1])/4;
-			writePixels[k2]=toInt(temp.x) |
-						(toInt(temp.y) << 8) |
-						(toInt(temp.z) << 16);
-		}
-	}
-}*/
 			
 void displayFunc(void) {
 	glBindBuffer( GL_PIXEL_UNPACK_BUFFER, pbo);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glRasterPos2i(0, 0);
-	//glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-	//glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, &pbo);
 
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, 
 		  GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glBegin(GL_QUADS);
-  	glTexCoord2f(0.0f,0.0f); glVertex3f(0.0f,0.0f,0.0f);
-  	glTexCoord2f(0.0f,1.0f); glVertex3f(0.0f,1.0f,0.0f);
-  	glTexCoord2f(1.0f,1.0f); glVertex3f(1.0f,1.0f,0.0f);
-  	glTexCoord2f(1.0f,0.0f); glVertex3f(1.0f,0.0f,0.0f);
-  	glEnd();
+	glTexCoord2f(0.0f,0.0f); glVertex3f(0.0f,0.0f,0.0f);
+	glTexCoord2f(0.0f,1.0f); glVertex3f(0.0f,1.0f,0.0f);
+	glTexCoord2f(1.0f,1.0f); glVertex3f(1.0f,1.0f,0.0f);
+	glTexCoord2f(1.0f,0.0f); glVertex3f(1.0f,0.0f,0.0f);
+	glEnd();
 
-	// Title
-	/*glColor3f(1.f, 1.f, 1.f);
-	glRasterPos2i(4, height - 16);
-	if (amiSmallptCPU)
-		PrintString(GLUT_BITMAP_HELVETICA_18, "SmallptCPU v1.6 (Written by David Bucciarelli)");
-	else
-		PrintString(GLUT_BITMAP_HELVETICA_18, "SmallptGPU v1.6 (Written by David Bucciarelli)");*/
-
-	// Caption line 0
 	glColor3f(1.f, 1.f, 1.f);
 	glRasterPos2i(4, 10);
-	PrintString(GLUT_BITMAP_HELVETICA_18, captionBuffer);
+	PrintString(GLUT_BITMAP_HELVETICA_18, caption_buffer);
 
-	if (printHelp) {
+	if (print_help) {
 		glPushMatrix();
 		glLoadIdentity();
 		glOrtho(-0.5, 639.5, -0.5, 479.5, -1.0, 1.0);
@@ -287,36 +246,28 @@ void displayFunc(void) {
 	}
 
 	glFlush();
-	//glFinish();
 	glutSwapBuffers();
-	if(animFlag) {
-    		glutPostRedisplay();
-    		animTime += animInc;
-  	}
+	if(animation_flag) {
+		glutPostRedisplay();
+		animation_time += animation_increment;
+	}
 
 }
 
-void reshapeFunc(int newWidth, int newHeight) {
-	width = newWidth;
-	height = newHeight;
-
-	/*glViewport(0, 0, width, height);
-	glLoadIdentity();
-	glOrtho(0.f, width - 1.f, 0.f, height - 1.f, -1.f, 1.f);*/
+void reshapeFunc(int new_width, int new_height) {
+	width = new_width;
+	height = new_height;
 
 	glViewport(0, 0, width, height);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glDisable(GL_DEPTH_TEST);
 
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
-
-
-	//ReInit(1);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
 
 	glutPostRedisplay();
 }
@@ -328,7 +279,7 @@ void reshapeFunc(int newWidth, int newHeight) {
 void keyFunc(unsigned char key, int x, int y) {
 	switch (key) {
 		case 'p': {
-			savePPM(0);
+			SavePPM(0);
 			break;
 		}
 		case 27: /* Escape key */
@@ -339,36 +290,37 @@ void keyFunc(unsigned char key, int x, int y) {
 			ReInit(1);
 			break;
 		case 'a': {
-			Vec dir = camera.x;
+			Vec direction = camera.x;
 			vnorm(dir);
-			vsmul(dir, -MOVE_STEP, dir);
-			vadd(camera.orig, camera.orig, dir);
-			vadd(camera.target, camera.target, dir);
+			vnorm(direction);
+			vsmul(direction, -MOVE_STEP, direction);
+			vadd(camera.orig, camera.orig, direction);
+			vadd(camera.target, camera.target, direction);
 			ReInit(1);
 			break;
 		}
 		case 'd': {
-			Vec dir = camera.x;
-			vnorm(dir);
-			vsmul(dir, MOVE_STEP, dir);
-			vadd(camera.orig, camera.orig, dir);
-			vadd(camera.target, camera.target, dir);
+			Vec direction = camera.x;
+			vnorm(direction);
+			vsmul(direction, MOVE_STEP, direction);
+			vadd(camera.orig, camera.orig, direction);
+			vadd(camera.target, camera.target, direction);
 			ReInit(1);
 			break;
 		}
 		case 'w': {
-			Vec dir = camera.dir;
-			vsmul(dir, MOVE_STEP, dir);
-			vadd(camera.orig, camera.orig, dir);
-			vadd(camera.target, camera.target, dir);
+			Vec direction = camera.dir;
+			vsmul(direction, MOVE_STEP, direction);
+			vadd(camera.orig, camera.orig, direction);
+			vadd(camera.target, camera.target, direction);
 			ReInit(1);
 			break;
 		}
 		case 's': {
-			Vec dir = camera.dir;
-			vsmul(dir, -MOVE_STEP, dir);
-			vadd(camera.orig, camera.orig, dir);
-			vadd(camera.target, camera.target, dir);
+			Vec direction = camera.dir;
+			vsmul(direction, -MOVE_STEP, direction);
+			vadd(camera.orig, camera.orig, direction);
+			vadd(camera.target, camera.target, direction);
 			ReInit(1);
 			break;
 		}
@@ -419,11 +371,13 @@ void keyFunc(unsigned char key, int x, int y) {
 			ReInitScene();
 			break;
 		case 'h':
-			printHelp = (!printHelp);
+			print_help = (!print_help);
 			break;
-	    case 'i':
-	        printf("Origine:(%.1f,%1.f,%1.f)\n\nTarget:(%.1f,%1.f,%1.f)",camera.orig.x,camera.orig.y,camera.orig.z,camera.target.x,camera.target.y,camera.target.z);
-	        break;
+		case 'i':
+			printf("Origin:(%.1f,%.1f,%.1f)\n\nTarget:(%.1f,%.1f,%.1f)",
+				camera.orig.x, camera.orig.y, camera.orig.z,
+				camera.target.x, camera.target.y, camera.target.z);
+			break;
 		default:
 			break;
 	}
@@ -432,42 +386,42 @@ void keyFunc(unsigned char key, int x, int y) {
 void specialFunc(int key, int x, int y) {
 	switch (key) {
 		case GLUT_KEY_UP: {
-			Vec t = camera.target;
-			vsub(t, t, camera.orig);
-			t.y = t.y * cos(-ROTATE_STEP) + t.z * sin(-ROTATE_STEP);
-			t.z = -t.y * sin(-ROTATE_STEP) + t.z * cos(-ROTATE_STEP);
-			vadd(t, t, camera.orig);
-			camera.target = t;
+			Vec target = camera.target;
+			vsub(target, target, camera.orig);
+			target.y = target.y * cos(-ROTATE_STEP) + target.z * sin(-ROTATE_STEP);
+			target.z = -target.y * sin(-ROTATE_STEP) + target.z * cos(-ROTATE_STEP);
+			vadd(target, target, camera.orig);
+			camera.target = target;
 			ReInit(1);
 			break;
 		}
 		case GLUT_KEY_DOWN: {
-			Vec t = camera.target;
-			vsub(t, t, camera.orig);
-			t.y = t.y * cos(ROTATE_STEP) + t.z * sin(ROTATE_STEP);
-			t.z = -t.y * sin(ROTATE_STEP) + t.z * cos(ROTATE_STEP);
-			vadd(t, t, camera.orig);
-			camera.target = t;
+			Vec target = camera.target;
+			vsub(target, target, camera.orig);
+			target.y = target.y * cos(ROTATE_STEP) + target.z * sin(ROTATE_STEP);
+			target.z = -target.y * sin(ROTATE_STEP) + target.z * cos(ROTATE_STEP);
+			vadd(target, target, camera.orig);
+			camera.target = target;
 			ReInit(1);
 			break;
 		}
 		case GLUT_KEY_LEFT: {
-			Vec t = camera.target;
-			vsub(t, t, camera.orig);
-			t.x = t.x * cos(-ROTATE_STEP) - t.z * sin(-ROTATE_STEP);
-			t.z = t.x * sin(-ROTATE_STEP) + t.z * cos(-ROTATE_STEP);
-			vadd(t, t, camera.orig);
-			camera.target = t;
+			Vec target = camera.target;
+			vsub(target, target, camera.orig);
+			target.x = target.x * cos(-ROTATE_STEP) - target.z * sin(-ROTATE_STEP);
+			target.z = target.x * sin(-ROTATE_STEP) + target.z * cos(-ROTATE_STEP);
+			vadd(target, target, camera.orig);
+			camera.target = target;
 			ReInit(1);
 			break;
 		}
 		case GLUT_KEY_RIGHT: {
-			Vec t = camera.target;
-			vsub(t, t, camera.orig);
-			t.x = t.x * cos(ROTATE_STEP) - t.z * sin(ROTATE_STEP);
-			t.z = t.x * sin(ROTATE_STEP) + t.z * cos(ROTATE_STEP);
-			vadd(t, t, camera.orig);
-			camera.target = t;
+			Vec target = camera.target;
+			vsub(target, target, camera.orig);
+			target.x = target.x * cos(ROTATE_STEP) - target.z * sin(ROTATE_STEP);
+			target.z = target.x * sin(ROTATE_STEP) + target.z * cos(ROTATE_STEP);
+			vadd(target, target, camera.orig);
+			camera.target = target;
 			ReInit(1);
 			break;
 		}
@@ -484,36 +438,32 @@ void specialFunc(int key, int x, int y) {
 	}
 }
 
-void InitGlut(int argc, char *argv[], char *windowTittle) {
+void InitGlut(int argc, char *argv[], char *window_title) {
 	glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-    //glutInitDisplayMode(GLUT_RGBA);
-    glutInitWindowSize(width, height);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+	glutInitWindowSize(width, height);
 
-	glutCreateWindow(windowTittle);
+	glutCreateWindow(window_title);
 
-    glutReshapeFunc(reshapeFunc);
-    glutKeyboardFunc(keyFunc);
-    glutSpecialFunc(specialFunc);
-    glutDisplayFunc(displayFunc);
+	glutReshapeFunc(reshapeFunc);
+	glutKeyboardFunc(keyFunc);
+	glutSpecialFunc(specialFunc);
+	glutDisplayFunc(displayFunc);
 	glutIdleFunc(idleFunc);
 
 	glewInit();
 	if (! glewIsSupported( "GL_VERSION_2_0 " ) ) {
-    		fprintf(stderr, "ERROR: Support for necessary OpenGL extensions missing.");
-  	}
+		fprintf(stderr, "ERROR: Support for necessary OpenGL extensions missing.");
+	}
 
 	glViewport(0, 0, width, height);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glDisable(GL_DEPTH_TEST);
 
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
-
-	//glLoadIdentity();
-	//glOrtho(0.f, width - 1.f, 0.f, height - 1.f, -1.f, 1.f);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
 }

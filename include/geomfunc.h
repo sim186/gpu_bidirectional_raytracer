@@ -240,14 +240,12 @@ static void SamplePixels(
 
 			vxcross(temp,shadowRay.d,prevRay.d);
 			float dotto=vdot(temp,*normal);
-			//fprintf(stderr,"%f \n",dotto);
 			if(fabs(dotto)<.01) {	
 				const float len1 = sqrt(vdot(shadowRay.d, shadowRay.d));
 				const float len2 = sqrt(vdot(*normal, *normal));
 				const float len3 = sqrt(vdot(prevRay.d, prevRay.d));
 				const float costheta1 = (vdot(shadowRay.d,*normal)/(len1*len2));
 				const float costheta2 = (vdot(prevRay.d,*normal)/(len3*len2));
-				//fprintf(stderr,"%f %f\n",costheta1,costheta2);
 				if(fabs(costheta1-costheta2)<.01) {
 					vsmul(Ld,M_PI,*throughput)
 					vmul(*rad,*rad,Ld);
@@ -323,14 +321,9 @@ static void RadianceLightTracing(
 
 	unsigned int depth = 1;
 	for (;; ++depth) {
-	//fprintf(stderr,"viszero r %d\n",viszero(light.e));
 		// Removed Russian Roulette in order to improve execution on SIMT
 		if (depth>50||viszero(rad)) {
-			//if(depth_count<100)
-			//fprintf(stderr,"%f <- %f - %d : %d ->",avg_depth*depth_count,depth_count,depth);
 			avg_depth=(avg_depth*depth_count+depth)/(depth_count+1);
-			//if(depth_count<100)
-			//fprintf(stderr,"%f \n",avg_depth);
 			depth_count++;
 			return;
 		}
@@ -363,7 +356,6 @@ static void RadianceLightTracing(
 
 		if (obj->refl == DIFF) { /* Ideal DIFFUSE reflection */
 			vmul(throughput, throughput, obj->c);
-			//fprintf(stderr," col %f %f %f\n",throughput.x, throughput.y, throughput.z);
 
 			/* Direct lighting component */
 
