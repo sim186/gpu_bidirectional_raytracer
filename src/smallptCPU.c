@@ -37,7 +37,7 @@ int ReInitCounter;
 LightPath *lp,*dev_lp;
 int vlp_index=MAX_VLP;
 extern void display();
-const char *dat_path = "data/MersenneTwister.dat";
+const char *dat_path = "assets/data/MersenneTwister.dat";
 float *d_Rand ;
 extern int flag;
 size_t size;
