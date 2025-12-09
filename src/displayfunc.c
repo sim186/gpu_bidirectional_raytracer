@@ -291,7 +291,6 @@ void keyFunc(unsigned char key, int x, int y) {
 			break;
 		case 'a': {
 			Vec direction = camera.x;
-			vnorm(dir);
 			vnorm(direction);
 			vsmul(direction, -MOVE_STEP, direction);
 			vadd(camera.orig, camera.orig, direction);
