@@ -13,8 +13,8 @@ extern int height;
 extern float invWidth;
 extern float invHeight;
 static float maxdiff=0;
-int ccoo;
-float ndep;
+int depth_count;
+float avg_depth;
 
 const char *byte_to_binary
 (
@@ -326,12 +326,12 @@ static void RadianceLightTracing(
 	//fprintf(stderr,"viszero r %d\n",viszero(light.e));
 		// Removed Russian Roulette in order to improve execution on SIMT
 		if (depth>50||viszero(rad)) {
-			//if(ccoo<100)
-			//fprintf(stderr,"%f <- %f - %d : %d ->",ndep*ccoo,ccoo,depth);
-			ndep=(ndep*ccoo+depth)/(ccoo+1);
-			//if(ccoo<100)
-			//fprintf(stderr,"%f \n",ndep);
-			ccoo++;
+			//if(depth_count<100)
+			//fprintf(stderr,"%f <- %f - %d : %d ->",avg_depth*depth_count,depth_count,depth);
+			avg_depth=(avg_depth*depth_count+depth)/(depth_count+1);
+			//if(depth_count<100)
+			//fprintf(stderr,"%f \n",avg_depth);
+			depth_count++;
 			return;
 		}
 
