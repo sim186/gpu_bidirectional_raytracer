@@ -47,7 +47,8 @@ echo "Test 3: Verifying header guards..."
 check_header_guard() {
     FILE=$1
     GUARD=$2
-    if grep -q "#ifndef $GUARD" "$FILE" && grep -E "#define[[:space:]]+$GUARD" "$FILE" > /dev/null && grep -q "#endif" "$FILE"; then
+    # Check that #ifndef appears before #define, and #endif exists
+    if head -5 "$FILE" | grep -q "#ifndef $GUARD" && head -10 "$FILE" | grep -E "#define[[:space:]]+$GUARD" > /dev/null && tail -5 "$FILE" | grep -q "#endif"; then
         echo "  ✓ $FILE has proper header guards"
         ((PASS++))
     else
@@ -87,11 +88,12 @@ check_scene_file "assets/scenes/simple.scn"
 echo ""
 echo "Test 5: Checking for common code issues..."
 
-# Check for proper include paths
-if grep -r "#include \"" src/ include/ | grep -v "include/" | grep -v "\.h\"" > /dev/null; then
-    echo "  ⚠ Warning: Some includes might need path adjustment"
+# Check for absolute include paths which would be problematic
+PROBLEM_INCLUDES=$(grep -r "#include \"/" src/ include/ 2>/dev/null | wc -l)
+if [ "$PROBLEM_INCLUDES" -gt 0 ]; then
+    echo "  ⚠ Warning: Found $PROBLEM_INCLUDES absolute include paths"
 else
-    echo "  ✓ Include paths look correct"
+    echo "  ✓ No problematic include paths found"
     ((PASS++))
 fi
 

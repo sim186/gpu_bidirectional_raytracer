@@ -28,3 +28,6 @@ core
 # Temporary files
 *.tmp
 *.bak
+
+# CodeQL analysis
+_codeql_detected_source_root
