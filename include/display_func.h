@@ -1,5 +1,5 @@
-#ifndef _DISPLAYFUNC_H
-#define	_DISPLAYFUNC_H
+#ifndef _DISPLAY_FUNC_H
+#define _DISPLAY_FUNC_H
 
 #include <math.h>
 
@@ -29,5 +29,4 @@ extern double WallClockTime();
 extern void ReadScene(char *);
 extern void UpdateCamera();
 
-#endif	/* _DISPLAYFUNC_H */
-
+#endif /* _DISPLAY_FUNC_H */

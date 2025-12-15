@@ -7,83 +7,77 @@
 
 __device__ static float tol=TOL;
 
-__device__ static bool vecmul(Vec *inout, Vec mul) {
+__device__ static bool VecMultiply(Vec *inout, Vec mul) {
 
-bool should_stop = false;
-float temp;
+	bool should_stop = false;
+	float temp;
 
-if (inout->x!=0.f&&mul.x!=0.f) {
-	temp=inout->x*mul.x;
-	if (temp<=tol||inout->x==temp)
-		should_stop=true;
-	else
-	 	inout->x=temp;
-	}
-else
-	inout->x=0.f;
+	if (inout->x!=0.f && mul.x!=0.f) {
+		temp = inout->x * mul.x;
+		if (temp <= tol || inout->x == temp)
+			should_stop = true;
+		else
+			inout->x = temp;
+	} else
+		inout->x = 0.f;
 
-if (inout->y!=0.f&&mul.y!=0.f) {
-	temp=inout->y*mul.y;
-	if (temp<=tol||inout->y==temp)
-		should_stop=true;
-	else
-	 	inout->y=temp;
-	}
-else
-	inout->y=0.f;
+	if (inout->y!=0.f && mul.y!=0.f) {
+		temp = inout->y * mul.y;
+		if (temp <= tol || inout->y == temp)
+			should_stop = true;
+		else
+			inout->y = temp;
+	} else
+		inout->y = 0.f;
 
-if (inout->z!=0.f&&mul.z!=0.f) {
-	temp=inout->z*mul.z;
-	if (temp<=tol||inout->z==temp)
-		should_stop=true;
-	else
-	 	inout->z=temp;
-	}
-else
-	inout->z=0.f;
-return should_stop;
+	if (inout->z!=0.f && mul.z!=0.f) {
+		temp = inout->z * mul.z;
+		if (temp <= tol || inout->z == temp)
+			should_stop = true;
+		else
+			inout->z = temp;
+	} else
+		inout->z = 0.f;
+	return should_stop;
 }
 
 
-__device__ static bool vecsmul(Vec *inout, float mul) {
+__device__ static bool VecScalarMultiply(Vec *inout, float mul) {
 
-bool should_stop = false;
-float temp;
+	bool should_stop = false;
+	float temp;
 
-if (inout->x!=0.f&&mul!=0.f) {
-	temp=inout->x*mul;
-	if (temp<=tol||inout->x==temp)
-		should_stop=true;
-	else
-	 	inout->x=temp;
-	}
-else
-	inout->x=0.f;
+	if (inout->x!=0.f && mul!=0.f) {
+		temp = inout->x * mul;
+		if (temp <= tol || inout->x == temp)
+			should_stop = true;
+		else
+			inout->x = temp;
+	} else
+		inout->x = 0.f;
 
-if (inout->y!=0.f&&mul!=0.f) {
-	temp=inout->y*mul;
-	if (temp<=tol||inout->y==temp)
-		should_stop=true;
-	else
-	 	inout->y=temp;
-	}
-else
-	inout->y=0.f;
+	if (inout->y!=0.f && mul!=0.f) {
+		temp = inout->y * mul;
+		if (temp <= tol || inout->y == temp)
+			should_stop = true;
+		else
+			inout->y = temp;
+	} else
+		inout->y = 0.f;
 
-if (inout->z!=0.f&&mul!=0.f) {
-	temp=inout->z*mul;
-	if (temp<=tol||inout->z==temp)
-		should_stop=true;
-	else
-	 	inout->z=temp;
-	}
-else
-	inout->z=0.f;
-return should_stop;
+	if (inout->z!=0.f && mul!=0.f) {
+		temp = inout->z * mul;
+		if (temp <= tol || inout->z == temp)
+			should_stop = true;
+		else
+			inout->z = temp;
+	} else
+		inout->z = 0.f;
+	return should_stop;
 }
 
 
-__device__ static float SphereIntersect_dev(
+__device__ static float SphereIntersectDevice(
 	Sphere *s,
 	Ray *r) { /* returns distance, 0 if nohit */
 	Vec op; /* Solve t^2*d.d + 2*t*(o-p).d + (o-p).(o-p)-R^2 = 0 */
@@ -109,7 +103,7 @@ __device__ static float SphereIntersect_dev(
 	}
 }
 
-__device__ static int Intersect_dev(
+__device__ static int IntersectDevice(
 	Sphere *spheres,
 	unsigned int sphereCount,
 	Ray *r,
@@ -119,7 +113,7 @@ __device__ static int Intersect_dev(
 
 	unsigned int i = sphereCount;
 	for (; i--;) {
-		const float d = SphereIntersect_dev(&spheres[i], r);
+		const float d = SphereIntersectDevice(&spheres[i], r);
 		if ((d != 0.f) && (d < *t)) {
 			*t = d;
 			*id = i;
@@ -129,14 +123,14 @@ __device__ static int Intersect_dev(
 	return (*t < inf);
 }
 
-__device__ static int IntersectP_dev(
+__device__ static int IntersectPDevice(
 	Sphere *spheres,
 	unsigned int sphereCount,
 	Ray *r,
 	float maxt) {
 	unsigned int i = sphereCount;
 	for (; i--;) {
-		const float d = SphereIntersect_dev(&spheres[i], r);
+		const float d = SphereIntersectDevice(&spheres[i], r);
 		if ((d != 0.f) && (d < maxt))
 			return 1;
 	}
@@ -144,14 +138,14 @@ __device__ static int IntersectP_dev(
 	return 0;
 }
 
-__device__ static int IntersectP_vaacum_dev(
+__device__ static int IntersectPVacuumDevice(
 	Sphere *spheres,
 	unsigned int sphereCount,
 	Ray *r,
 	float maxt) {
 	unsigned int i = sphereCount;
 	for (; i--;) {
-		const float d = SphereIntersect_dev(&spheres[i], r);
+		const float d = SphereIntersectDevice(&spheres[i], r);
 		if ((d != 0.f) && (d < maxt) && viszero(spheres[i].e))
 			return 1;
 	}
@@ -160,7 +154,7 @@ __device__ static int IntersectP_vaacum_dev(
 }
 
 
-__device__ static void UniformSampleSphere_dev(const float u1, const float u2, Vec *v) {
+__device__ static void UniformSampleSphereDevice(const float u1, const float u2, Vec *v) {
 	const float zz = 1.f - 2.f * u1;
 	const float r = sqrt(max(0.f, 1.f - zz * zz));
 	const float phi = 2.f * FLOAT_PI * u2;
@@ -170,25 +164,25 @@ __device__ static void UniformSampleSphere_dev(const float u1, const float u2, V
 	vinit(*v, xx, yy, zz);
 }
 
-__global__ void get_ray(const Sphere light, Ray *dev_data, float *d_Rand, int cS, int pC, unsigned int sid)
+__global__ void GetRayKernel(const Sphere light, Ray *dev_data, float *d_Rand, int current_sample, int rand_count, unsigned int seed_id)
 {
 	/* Choose a point over the light source */
-	int i,j;
-	int ind=blockDim.x*blockIdx.x+threadIdx.x;
+	int i, j;
+	int ind = blockDim.x * blockIdx.x + threadIdx.x;
 
-	i=(cS*5+ind*4+sid)%(pC-4);
-	j=i+2;
+	i = (current_sample * 5 + ind * 4 + seed_id) % (rand_count - 4);
+	j = i + 2;
 	//j=(lS+(ind*2))%(pC-4);
 
-	Vec unitSpherePoint;
-	UniformSampleSphere_dev(d_Rand[j], d_Rand[i], &unitSpherePoint);
-	Vec spherePoint;
-	vsmul(spherePoint, light.rad, unitSpherePoint);
-	vadd(spherePoint, spherePoint, light.p);
+	Vec unit_sphere_point;
+	UniformSampleSphereDevice(d_Rand[j], d_Rand[i], &unit_sphere_point);
+	Vec sphere_point;
+	vsmul(sphere_point, light.rad, unit_sphere_point);
+	vadd(sphere_point, sphere_point, light.p);
 
 	/* Build the newray direction */
 	Vec normal;
-	vsub(normal, spherePoint, light.p);
+	vsub(normal, sphere_point, light.p);
 	vnorm(normal);
 
 	//vsmul(normal, 1.f, normal);
@@ -210,53 +204,53 @@ __global__ void get_ray(const Sphere light, Ray *dev_data, float *d_Rand, int cS
 	Vec v;
 	vxcross(v, normal, u);
 
-	Vec newDir;
+	Vec new_dir;
 	vsmul(u, cos(r1) * r2s, u);
 	vsmul(v, sin(r1) * r2s, v);
-	vadd(newDir, u, v);
+	vadd(new_dir, u, v);
 	vsmul(normal, sqrt(1 - r2), normal);
-	vadd(newDir, newDir, normal);
+	vadd(new_dir, new_dir, normal);
 
 	/*dev_data[ind].o.x = dev_seeds[i];
 	dev_data[ind].o.y = i;
 	dev_data[ind].o.z = lS;*/
-	dev_data[ind].o = spherePoint;
-	dev_data[ind].d = newDir;
+	dev_data[ind].o = sphere_point;
+	dev_data[ind].d = new_dir;
 }
 
 
-__global__ void RadianceLightTracing_dev(
-           Sphere *spheres, 
-           unsigned int sphereCount, 
-           Ray *startRay, 
-           float *d_Rand, 
-           int idlight, 
-           int pC, 
-           Camera camera, 
-           Vec *colors, 
-           unsigned int *counter, 
-           LightPath *dev_lp, 
-           float invWidth, 
-           float invHeight, 
-           float width, 
-           float height, 
-           unsigned int sid) {
+__global__ void RadianceLightTracingKernel(
+		   Sphere *spheres,
+		   unsigned int sphereCount,
+		   Ray *start_ray,
+		   float *d_Rand,
+		   int id_light,
+		   int rand_count,
+		   Camera camera,
+		   Vec *colors,
+		   unsigned int *counter,
+		   LightPath *dev_lp,
+		   float inv_width,
+		   float inv_height,
+		   float width,
+		   float height,
+		   unsigned int seed_id) {
 
-	int ind=blockDim.x*blockIdx.x+threadIdx.x;
-	int row=blockDim.y*blockIdx.y+threadIdx.y;
+	int ind = blockDim.x * blockIdx.x + threadIdx.x;
+	int row = blockDim.y * blockIdx.y + threadIdx.y;
 
-	bool flag1=false, flag2=false;
-	Sphere inilight=spheres[idlight];
-	int depth_index,depth=0;
-	
-	Ray currentRay; rassign(currentRay, startRay[ind]);
+	bool flag1 = false, flag2 = false;
+	Sphere ini_light = spheres[id_light];
+	int depth_index, depth = 0;
+
+	Ray current_ray; rassign(current_ray, start_ray[ind]);
 	Vec throughput;
-	vassign(throughput, inilight.e);
-	Vec hitPoint;
-	vassign(hitPoint, currentRay.o);
+	vassign(throughput, ini_light.e);
+	Vec hit_point;
+	vassign(hit_point, current_ray.o);
 
 	Vec normal;
-	vsub(normal, hitPoint, inilight.p);
+	vsub(normal, hit_point, ini_light.p);
 	vnorm(normal);
 	{	
 			unsigned int id2;
@@ -266,7 +260,7 @@ __global__ void RadianceLightTracing_dev(
 			vsub(eyeray.d, hitPoint, camera.orig);
 			const float len = sqrt(vdot(eyeray.d, eyeray.d));
 			vsmul(eyeray.d, 1.f / len, eyeray.d);
-			Intersect_dev(spheres, sphereCount, &eyeray, &t, &id2);
+			IntersectDevice(spheres, sphereCount, &eyeray, &t, &id2);
 
 	}
 	
@@ -276,13 +270,13 @@ __global__ void RadianceLightTracing_dev(
 	
 	while (depth<DEPTH) { //Aggiungere define DEPTH?
 	
-		int i=(ind*154+depth*3+4+sid)%(pC-3);
+		int i = (ind*154 + depth*3 + 4 + seed_id) % (rand_count - 3);
 		//lS*155+
 		
 		// Removed Russian Roulette in order to improve execution on SIMT
 		float t; /* distance to intersection */
 		unsigned int id = 0; /* id of intersected object */
-		if (!Intersect_dev(spheres, sphereCount, &currentRay, &t, &id)) {
+		if (!IntersectDevice(spheres, sphereCount, &currentRay, &t, &id)) {
 			Vec nor;
 			vsub(nor, currentRay.o,inilight.p);
 			vsmul(nor,-1./inilight.rad,nor);
@@ -320,7 +314,7 @@ __global__ void RadianceLightTracing_dev(
 		if (obj->refl == DIFF) { /* Ideal DIFFUSE reflection */
 			// if(||vecsmul(&throughput, 0.1))
 				// flag1=true;
-             vecmul(&throughput, obj->c);
+			 VecMultiply(&throughput, obj->c);
 			/* Direct lighting component */
 
 			// unsigned int id2;
@@ -394,7 +388,7 @@ __global__ void RadianceLightTracing_dev(
 			vsmul(newDir,  2.f * vdot(normal, currentRay.d), normal);
 			vsub(newDir, currentRay.d, newDir);
 
-            vecmul(&throughput, obj->c);
+			VecMultiply(&throughput, obj->c);
 			// if ()
 				// flag1=true;
 
@@ -416,7 +410,7 @@ __global__ void RadianceLightTracing_dev(
 
 			if (cos2t < 0.f)  { /* Total internal reflection */
 				
-				vecmul(&throughput, obj->c);
+				VecMultiply(&throughput, obj->c);
 				// if ()
 					// flag1=true;
 
@@ -443,12 +437,12 @@ __global__ void RadianceLightTracing_dev(
 				float TP = Tr / (1.f - P);
 
 				if (d_Rand[i+2] < P) { /* R.R. */
-					if (vecsmul(&throughput, RP)||vecmul(&throughput, obj->c))
+					if (VecScalarMultiply(&throughput, RP) || VecMultiply(&throughput, obj->c))
 						flag1=true;
 
 					rassign(currentRay, reflRay);
 				} else {
-					if (vecsmul(&throughput, TP)||vecmul(&throughput, obj->c))
+					if (VecScalarMultiply(&throughput, TP) || VecMultiply(&throughput, obj->c))
 						flag1=true;
 
 					rinit(currentRay, hitPoint, transDir);
@@ -460,7 +454,7 @@ __global__ void RadianceLightTracing_dev(
 	}
 }
 
-__device__ static void SampleLights_dev(
+__device__ static void SampleLightsDevice(
 	Sphere *spheres,
 	unsigned int sphereCount,
 	float *d_Rand,
@@ -482,7 +476,7 @@ __device__ static void SampleLights_dev(
 
 			/* Choose a point over the light source */
 			Vec unitSpherePoint;
-			UniformSampleSphere_dev(d_Rand[dk], d_Rand[dj], &unitSpherePoint);
+			UniformSampleSphereDevice(d_Rand[dk], d_Rand[dj], &unitSpherePoint);
 			Vec spherePoint;
 			vsmul(spherePoint, light->rad, unitSpherePoint);
 			vadd(spherePoint, spherePoint, light->p);
@@ -500,7 +494,7 @@ __device__ static void SampleLights_dev(
 
 			/* Check if the light is visible */
 			const float wi = vdot(shadowRay.d, *normal);
-			if ((wi > 0.f) && (!IntersectP_dev(spheres, sphereCount, &shadowRay, len - EPSILON))) {
+			if ((wi > 0.f) && (!IntersectPDevice(spheres, sphereCount, &shadowRay, len - EPSILON))) {
 				Vec c; vassign(c, light->e);
 				//vsmul(c,4,c);
 				const float s = (4.f * FLOAT_PI * light->rad * light->rad) * wi * wo / (len *len);
@@ -531,7 +525,7 @@ __device__ static void SampleLights_dev(
 					wo = -wo;
 				/* Check if the light is visible */
 				const float wi = vdot(shadowRayVirtual.d, *normal);
-				if ((wi > 0.f) && (!IntersectP_vaacum_dev(spheres, sphereCount, &shadowRayVirtual, len - EPSILON))) {
+				if ((wi > 0.f) && (!IntersectPVacuumDevice(spheres, sphereCount, &shadowRayVirtual, len - EPSILON))) {
 					Vec c; vassign(c, dev_lp[k*LIGHT_POINTS+j].rad);
 
 					//const float s = 0.1;
@@ -547,14 +541,14 @@ __device__ static void SampleLights_dev(
 	
 }
 
-__global__ void RadiancePathTracing_dev(
+__global__ void RadiancePathTracingKernel(
 	Sphere *spheres,
 	unsigned int sphereCount,
 	float *d_Rand,
-	int pC, Camera camera, Vec *colors, unsigned int *counter,
-	uchar4 *pixels,float invWidth, float invHeight,
+	int rand_count, Camera camera, Vec *colors, unsigned int *counter,
+	uchar4 *pixels,float inv_width, float inv_height,
 	float width, float height, 
-	unsigned int sid, unsigned int param,LightPath *dev_lp, int vlp_index) {
+	unsigned int seed_id, unsigned int param,LightPath *dev_lp, int vlp_index) {
 
 	int x=blockDim.x*blockIdx.x+threadIdx.x;
 	int y=blockDim.y*blockIdx.y+threadIdx.y;
@@ -565,11 +559,11 @@ __global__ void RadiancePathTracing_dev(
 	
 		//Ray ray;
 		Vec rdir,temp,nega, kappa;
-		int kk=(26+i*25+sid)%(pC-5);
+		int kk = (26 + i*25 + seed_id) % (rand_count - 5);
 		// const float kx=((float)(x)*(invWidth)-invWidth*width/2.);
 		// const float ky=((float)(y)*(invHeight)-invHeight*height/2.);
-		const float kx=((float)(x)*(invWidth)-invWidth*width/2.)+d_Rand[kk]*invWidth;
-		const float ky=((float)(y)*(invHeight)-invHeight*height/2.)+d_Rand[kk+1]*invHeight;
+		const float kx = ((float)(x)*(inv_width) - inv_width*width/2.) + d_Rand[kk] * inv_width;
+		const float ky = ((float)(y)*(inv_height) - inv_height*height/2.) + d_Rand[kk+1] * inv_height;
 		const float kz=10.0;
 		vinit (kappa,kx,ky,kz);
 			
@@ -607,7 +601,7 @@ __global__ void RadiancePathTracing_dev(
 				
 		unsigned int id2;
 		float t;
-		Intersect_dev(spheres, sphereCount, &ray, &t, &id2);
+		IntersectDevice(spheres, sphereCount, &ray, &t, &id2);
 		int nn=1;
 	
 		if(counter[i]<30000){//A che serve? Sarebbe il numero di percorsi per tutta l'immagine?
@@ -622,7 +616,7 @@ __global__ void RadiancePathTracing_dev(
 		   for (;; ++depth) {
 				//int j=(i+eyeSample+depth*(pC/6))%(pC/2);
 				//int j=(i*eyeSample*nn*depth)%(pC-4);
-				int j=(nn*26+i*25+depth*5+sid)%(pC-5);
+				int j = (nn*26 + i*25 + depth*5 + seed_id) % (rand_count - 5);
 				// Removed Russian Roulette in order to improve execution on SIMT
 				if (depth > 6) {
 					r = rad;
@@ -631,7 +625,7 @@ __global__ void RadiancePathTracing_dev(
 		
 				float t; /* distance to intersection */
 				unsigned int id = 0; /* id of intersected object */
-				if (!Intersect_dev(spheres, sphereCount, &currentRay, &t, &id)) {
+				if (!IntersectDevice(spheres, sphereCount, &currentRay, &t, &id)) {
 					r = rad; /* if miss, return */
 					break;
 				}
@@ -673,7 +667,7 @@ __global__ void RadiancePathTracing_dev(
 					/* Direct lighting component */
 		
 					Vec Ld;
-					SampleLights_dev(spheres, sphereCount, d_Rand, &hitPoint, &nl, &Ld, pC,j+2,dev_lp,vlp_index);
+					SampleLightsDevice(spheres, sphereCount, d_Rand, &hitPoint, &nl, &Ld, pC,j+2,dev_lp,vlp_index);
 					vmul(Ld, throughput, Ld);
 					vadd(rad, rad, Ld);
 		

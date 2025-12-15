@@ -23,8 +23,8 @@ check_file() {
 }
 
 check_file "src/device.cu"
-check_file "src/smallptCPU.c"
-check_file "src/displayfunc.c"
+check_file "src/smallpt_cpu.c"
+check_file "src/display_func.c"
 check_file "src/MersenneTwister_kernel.cu"
 check_file "include/vec.h"
 check_file "include/geom.h"

@@ -23,8 +23,8 @@ A high-performance bidirectional path tracing renderer written in C/C++ and CUDA
 gpu_bidirectional_raytracer/
 ├── src/                          # Source files
 │   ├── device.cu                 # Main CUDA kernel implementations
-│   ├── smallptCPU.c              # Host code and main entry point
-│   ├── displayfunc.c             # OpenGL display and UI functions
+│   ├── smallpt_cpu.c             # Host code and main entry point (snake_case)
+│   ├── display_func.c            # OpenGL display and UI functions (snake_case)
 │   └── MersenneTwister_kernel.cu # Random number generation
 ├── include/                      # Header files
 │   ├── vec.h                     # Vector math operations
@@ -188,13 +188,14 @@ Contributions are welcome! Here's how you can help:
 
 ### Code Style Guidelines
 
-- Use consistent indentation (tabs or spaces, as per existing code)
-- Follow C/C++ naming conventions:
-  - `snake_case` for local variables
-  - `PascalCase` for functions
-  - `UPPER_CASE` for constants and macros
-- Add comments for complex algorithms
-- Keep functions focused and modular
+- **Indentation:** Match existing files (tabs or spaces used in repository).
+- **Naming conventions:**
+  - `snake_case` for local variables and file names.
+  - `PascalCase` for function and kernel names.
+  - `UPPER_CASE` for constants and macros.
+- **Refactor notes:** We have started a gradual renaming to improve clarity — some files now have new snake_case filenames (for example `display_func.c`) while the project still supports the old names for backward compatibility. Update `Makefile` and tests when you're ready to fully switch.
+- **Comments:** Add brief comments for non-obvious math or algorithmic sections.
+- **Modularity:** Keep functions short and testable; prefer helper functions over long monolithic blocks.
 
 ## Known Issues
 
