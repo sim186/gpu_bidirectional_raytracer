@@ -27,15 +27,15 @@ gpu_bidirectional_raytracer/
 │   ├── display_func.c            # OpenGL display and UI functions (snake_case)
 │   └── MersenneTwister_kernel.cu # Random number generation
 ├── include/                      # Header files
-│   ├── vec.h                     # Vector math operations
-│   ├── geom.h                    # Geometry structures (Ray, Sphere)
-│   ├── geomfunc.h                # Geometry utility functions
+│   ├── vector_math.h             # Vector math operations
+│   ├── geometry.h                # Geometry structures (Ray, Sphere)
+│   ├── geometry_functions.h      # Geometry utility functions
 │   ├── camera.h                  # Camera structure
 │   ├── scene.h                   # Scene definitions
-│   ├── displayfunc.h             # Display function declarations
-│   ├── simplernd.h               # Simple random number generator
-│   ├── cons.h                    # Constants and configuration
-│   └── MersenneTwister.h         # Mersenne Twister RNG header
+│   ├── display_functions.h       # Display function declarations
+│   ├── simple_random.h           # Simple random number generator
+│   ├── constants.h               # Constants and configuration
+│   └── mersenne_twister.h        # Mersenne Twister RNG header
 ├── assets/                       # Asset files
 │   ├── scenes/                   # Scene definition files (.scn)
 │   ├── images/                   # Sample rendered images
@@ -148,7 +148,7 @@ The `assets/scenes/` directory contains various pre-configured scenes:
 
 ## Configuration
 
-Key parameters can be adjusted in `include/cons.h`:
+Key parameters can be adjusted in `include/constants.h`:
 
 - `RAYNTHREAD`: Number of threads per block (default: 64)
 - `RAYNGRID`: Number of blocks in grid (default: 64)
@@ -169,7 +169,7 @@ gimp image.ppm
 
 ## Performance Tips
 
-1. **Adjust Thread Configuration**: Modify `RAYNTHREAD` and `RAYNGRID` in `cons.h` based on your GPU
+1. **Adjust Thread Configuration**: Modify `RAYNTHREAD` and `RAYNGRID` in `constants.h` based on your GPU
 2. **Reduce Max Iterations**: Lower `MAXITER` for faster but less accurate renders
 3. **GPU Selection**: If you have multiple GPUs, ensure CUDA uses the correct one
 4. **Resolution**: Start with lower resolutions for faster iteration

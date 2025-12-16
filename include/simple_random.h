@@ -1,5 +1,5 @@
-#ifndef _SIMPLERND_H
-#define	_SIMPLERND_H
+#ifndef _SIMPLE_RANDOM_H
+#define _SIMPLE_RANDOM_H
 
 /*
  * A Simple Random number generator
@@ -8,14 +8,16 @@
 
 #ifndef SMALLPT_GPU
 
-static float GetRandom(unsigned int *seed0, unsigned int *seed1) {
+static float GetRandom(unsigned int* seed0, unsigned int* seed1)
+{
 	*seed0 = 36969 * ((*seed0) & 65535) + ((*seed0) >> 16);
 	*seed1 = 18000 * ((*seed1) & 65535) + ((*seed1) >> 16);
 
 	unsigned int ires = ((*seed0) << 16) + (*seed1);
 
 	/* Convert to float */
-	union {
+	union
+	{
 		float f;
 		unsigned int ui;
 	} res;
@@ -26,5 +28,4 @@ static float GetRandom(unsigned int *seed0, unsigned int *seed1) {
 
 #endif
 
-#endif	/* _SIMPLERND_H */
-
+#endif /* _SIMPLE_RANDOM_H */

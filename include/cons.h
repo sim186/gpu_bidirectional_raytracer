@@ -1,9 +1,0 @@
-#define RAYNTHREAD 64
-#define RAYNGRID 64
-
-//#define RAYNTHREAD 64
-//#define RAYNGRID 128
-
-#define TOTTHREAD (RAYNTHREAD*RAYNGRID)
-#define MAXITER 6
-#define TOL 0.0001

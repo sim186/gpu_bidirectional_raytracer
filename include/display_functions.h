@@ -1,5 +1,4 @@
-#ifndef _DISPLAY_FUNC_H
-#define _DISPLAY_FUNC_H
+#pragma once
 
 #include <math.h>
 
@@ -10,23 +9,21 @@
 #include <GL/glut.h>
 #endif
 
-#include "vec.h"
+#include "vector_math.h"
 
 extern int width;
 extern float inverse_width;
 extern int height;
 extern float inverse_height;
-extern uchar4 *pixels;
-extern unsigned int *counter;
+extern uchar4* pixels;
+extern unsigned int* counter;
 extern unsigned int renderingFlags;
 extern char caption_buffer[256];
 
 extern int is_smallpt_cpu;
 
-extern void InitGlut(int argc, char *argv[], char *window_title);
+extern void InitGlut(int argc, char* argv[], char* window_title);
 extern double WallClockTime();
 
-extern void ReadScene(char *);
+extern void ReadScene(char*);
 extern void UpdateCamera();
-
-#endif /* _DISPLAY_FUNC_H */

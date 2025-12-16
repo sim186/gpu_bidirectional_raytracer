@@ -1,27 +1,28 @@
+#ifndef _GEOMETRY_FUNCTIONS_H
+#define _GEOMETRY_FUNCTIONS_H
 
-#ifndef _GEOMFUNC_H
-#define	_GEOMFUNC_H
-
-#include "geom.h"
-#include "simplernd.h"
+#include "geometry.h"
+#include "simple_random.h"
 extern Camera camera, phantom;
-extern uchar4 *pixels;
-extern unsigned int *counter;
-extern Vec *colors;
+extern uchar4* pixels;
+extern unsigned int* counter;
+extern Vec* colors;
 extern int width;
 extern int height;
 extern float invWidth;
 extern float invHeight;
-static float maxdiff=0;
+static float maxdiff = 0;
 int depth_count;
 float avg_depth;
 
-const char *ByteToBinary(int x) {
+const char* ByteToBinary(int x)
+{
 	static char b[9];
 	b[0] = '\0';
 
 	int z;
-	for (z = 256; z > 0; z >>= 1) {
+	for (z = 256; z > 0; z >>= 1)
+	{
 		strcat(b, ((x & z) == z) ? "1" : "0");
 	}
 
@@ -30,10 +31,11 @@ const char *ByteToBinary(int x) {
 
 static float SphereIntersect(
 #ifdef GPU_KERNEL
-OCL_CONSTANT_BUFFER
+    OCL_CONSTANT_BUFFER
 #endif
-	const Sphere *s,
-	const Ray *r) { /* returns distance, 0 if nohit */
+    const Sphere* s,
+    const Ray* r)
+{           /* returns distance, 0 if nohit */
 	Vec op; /* Solve t^2*d.d + 2*t*(o-p).d + (o-p).(o-p)-R^2 = 0 */
 	vsub(op, s->p, r->o);
 
@@ -45,12 +47,13 @@ OCL_CONSTANT_BUFFER
 		det = sqrt(det);
 
 	float t = b - det;
-	if (t >  EPSILON)
+	if (t > EPSILON)
 		return t;
-	else {
+	else
+	{
 		t = b + det;
 
-		if (t >  EPSILON)
+		if (t > EPSILON)
 			return t;
 		else
 			return 0.f;
@@ -58,27 +61,30 @@ OCL_CONSTANT_BUFFER
 }
 
 static float CheckIntersect(
-	const Sphere *s,
-	const Ray *r) { /* returns distance, 0 if nohit */
-	Vec op, ra; 
+    const Sphere* s,
+    const Ray* r)
+{ /* returns distance, 0 if nohit */
+	Vec op, ra;
 	vsub(op, s->p, r->o);
-	vsub(ra,r->d, r->o);
+	vsub(ra, r->d, r->o);
 
 	float len1 = sqrt(vdot(ra, ra));
 	float len2 = sqrt(vdot(op, op));
-	const float costheta = (vdot(ra,op)/(len1*len2));
-	const float sentheta = sqrt(1-costheta*costheta);
+	const float costheta = (vdot(ra, op) / (len1 * len2));
+	const float sentheta = sqrt(1 - costheta * costheta);
 	float d1 = len2 * sentheta;
-	
-	if (d1 < s->rad) {
+
+	if (d1 < s->rad)
+	{
 		float d2 = len2 * costheta;
-		return (d2-sqrt((s->rad)*(s->rad)-d1*d1));
-	} else
+		return (d2 - sqrt((s->rad) * (s->rad) - d1 * d1));
+	}
+	else
 		return 0.f;
-	
 }
 
-static void UniformSampleSphere(const float u1, const float u2, Vec *v) {
+static void UniformSampleSphere(const float u1, const float u2, Vec* v)
+{
 	const float zz = 1.f - 2.f * u1;
 	const float r = sqrt(max(0.f, 1.f - zz * zz));
 	const float phi = 2.f * FLOAT_PI * u2;
@@ -89,17 +95,20 @@ static void UniformSampleSphere(const float u1, const float u2, Vec *v) {
 }
 
 static int Intersect2(
-	const Sphere *spheres,
-	const unsigned int sphereCount,
-	const Ray *r,
-	float *t,
-	unsigned int *id) {
+    const Sphere* spheres,
+    const unsigned int sphereCount,
+    const Ray* r,
+    float* t,
+    unsigned int* id)
+{
 	float inf = (*t) = 1e20f;
 
 	unsigned int i = sphereCount;
-	for (; i--;) {
+	for (; i--;)
+	{
 		const float d = CheckIntersect(&spheres[i], r);
-		if ((d != 0.f) && (d < *t)) {
+		if ((d != 0.f) && (d < *t))
+		{
 			*t = d;
 			*id = i;
 		}
@@ -110,19 +119,22 @@ static int Intersect2(
 
 static int Intersect(
 #ifdef GPU_KERNEL
-OCL_CONSTANT_BUFFER
+    OCL_CONSTANT_BUFFER
 #endif
-	const Sphere *spheres,
-	const unsigned int sphereCount,
-	const Ray *r,
-	float *t,
-	unsigned int *id) {
+    const Sphere* spheres,
+    const unsigned int sphereCount,
+    const Ray* r,
+    float* t,
+    unsigned int* id)
+{
 	float inf = (*t) = 1e20f;
 
 	unsigned int i = sphereCount;
-	for (; i--;) {
+	for (; i--;)
+	{
 		const float d = SphereIntersect(&spheres[i], r);
-		if ((d != 0.f) && (d < *t)) {
+		if ((d != 0.f) && (d < *t))
+		{
 			*t = d;
 			*id = i;
 		}
@@ -133,14 +145,16 @@ OCL_CONSTANT_BUFFER
 
 static int IntersectP(
 #ifdef GPU_KERNEL
-OCL_CONSTANT_BUFFER
+    OCL_CONSTANT_BUFFER
 #endif
-	const Sphere *spheres,
-	const unsigned int sphereCount,
-	const Ray *r,
-	const float maxt) {
+    const Sphere* spheres,
+    const unsigned int sphereCount,
+    const Ray* r,
+    const float maxt)
+{
 	unsigned int i = sphereCount;
-	for (; i--;) {
+	for (; i--;)
+	{
 		const float d = SphereIntersect(&spheres[i], r);
 		if ((d != 0.f) && (d < maxt))
 			return 1;
@@ -151,24 +165,27 @@ OCL_CONSTANT_BUFFER
 
 static void SampleLights(
 #ifdef GPU_KERNEL
-OCL_CONSTANT_BUFFER
+    OCL_CONSTANT_BUFFER
 #endif
-	const Sphere *spheres,
-	const unsigned int sphereCount,
-	unsigned int *seed0, unsigned int *seed1,
-	const Vec *hitPoint,
-	const Vec *normal,
-	Vec *result) {
+    const Sphere* spheres,
+    const unsigned int sphereCount,
+    unsigned int* seed0, unsigned int* seed1,
+    const Vec* hitPoint,
+    const Vec* normal,
+    Vec* result)
+{
 	vclr(*result);
 
 	/* For each light */
 	unsigned int i;
-	for (i = 0; i < sphereCount; i++) {
+	for (i = 0; i < sphereCount; i++)
+	{
 #ifdef GPU_KERNEL
-OCL_CONSTANT_BUFFER
+		OCL_CONSTANT_BUFFER
 #endif
-		const Sphere *light = &spheres[i];
-		if (!viszero(light->e)) {
+		const Sphere* light = &spheres[i];
+		if (!viszero(light->e))
+		{
 			/* It is a light source */
 			Ray shadowRay;
 			shadowRay.o = *hitPoint;
@@ -186,19 +203,23 @@ OCL_CONSTANT_BUFFER
 			vsmul(shadowRay.d, 1.f / len, shadowRay.d);
 
 			float wo = vdot(shadowRay.d, unitSpherePoint);
-			if (wo > 0.f) {
+			if (wo > 0.f)
+			{
 				/* It is on the other half of the sphere */
 				continue;
-			} else
+			}
+			else
 				wo = -wo;
 
 			/* Check if the light is visible */
 			const float wi = vdot(shadowRay.d, *normal);
-			if ((wi > 0.f) && (!IntersectP(spheres, sphereCount, &shadowRay, len - EPSILON))) {
-				Vec c; vassign(c, light->e);
-				vsmul(c,10,c);
-				const float s = (4.f * FLOAT_PI * light->rad * light->rad) * wi * wo / (len *len);
-				//const float s = wi * wo / (len *len);
+			if ((wi > 0.f) && (!IntersectP(spheres, sphereCount, &shadowRay, len - EPSILON)))
+			{
+				Vec c;
+				vassign(c, light->e);
+				vsmul(c, 10, c);
+				const float s = (4.f * FLOAT_PI * light->rad * light->rad) * wi * wo / (len * len);
+				// const float s = wi * wo / (len *len);
 				vsmul(c, s, c);
 				vadd(*result, *result, c);
 			}
@@ -206,131 +227,138 @@ OCL_CONSTANT_BUFFER
 	}
 }
 
-
 static void SamplePixels(
-	const Vec *hitPoint,
-	Vec *rad,  
-	Vec *throughput,int test,
-	Vec *normal, Ray prevRay) {
+    const Vec* hitPoint,
+    Vec* rad,
+    Vec* throughput, int test,
+    Vec* normal, Ray prevRay)
+{
 
-			/*float xp,yp;
-			int pixx, pixy;
-			Vec temp, emme, nega;
-			unsigned int pixId;
-			Ray shadowRay;
-			shadowRay.o = *hitPoint;
+	/*float xp,yp;
+	int pixx, pixy;
+	Vec temp, emme, nega;
+	unsigned int pixId;
+	Ray shadowRay;
+	shadowRay.o = *hitPoint;
 
-			//vmul(*result,*throughput,obj->c);
-			//vsmul(*result, M_PI, *result);
-			//vadd(*result, *result, obj->e);
-			Vec Ld;
-			if(test==0){
-				vsmul(Ld,M_PI,*throughput)
-				vmul(*rad,*rad,Ld);
-			}
-			else{
-			vsub(shadowRay.d, camera.orig, *hitPoint);
-			const float len = sqrt(vdot(shadowRay.d, shadowRay.d));
-			vsmul(shadowRay.d, 1.f / len, shadowRay.d);
+	//vmul(*result,*throughput,obj->c);
+	//vsmul(*result, M_PI, *result);
+	//vadd(*result, *result, obj->e);
+	Vec Ld;
+	if(test==0){
+	    vsmul(Ld,M_PI,*throughput)
+	    vmul(*rad,*rad,Ld);
+	}
+	else{
+	vsub(shadowRay.d, camera.orig, *hitPoint);
+	const float len = sqrt(vdot(shadowRay.d, shadowRay.d));
+	vsmul(shadowRay.d, 1.f / len, shadowRay.d);
 
-			vxcross(temp,shadowRay.d,prevRay.d);
-			float dotto=vdot(temp,*normal);
-			if(fabs(dotto)<.01) {	
-				const float len1 = sqrt(vdot(shadowRay.d, shadowRay.d));
-				const float len2 = sqrt(vdot(*normal, *normal));
-				const float len3 = sqrt(vdot(prevRay.d, prevRay.d));
-				const float costheta1 = (vdot(shadowRay.d,*normal)/(len1*len2));
-				const float costheta2 = (vdot(prevRay.d,*normal)/(len3*len2));
-				if(fabs(costheta1-costheta2)<.01) {
-					vsmul(Ld,M_PI,*throughput)
-					vmul(*rad,*rad,Ld);
-				} else {
-					return;
-				}
-			} else return;
-							
-			}
-			
-			vassign(Ld,*rad);
-			
-			
-			vsmul(nega,-1,camera.x);
-			emme.x=vdot(nega,camera.orig);
-			vsmul(nega,-1,camera.y);
-			emme.y=vdot(nega,camera.orig);
-			vsmul(nega,-1,camera.dir);
-			emme.z=vdot(nega,camera.orig);
-			temp.x=vdot(camera.x,*hitPoint)+emme.x;
-			temp.y=vdot(camera.y,*hitPoint)+emme.y;
-			temp.z=vdot(camera.dir,*hitPoint)+emme.z;
-			if(temp.z>0){
-			  xp=temp.x*10/temp.z;
-			  yp=temp.y*10/temp.z;
+	vxcross(temp,shadowRay.d,prevRay.d);
+	float dotto=vdot(temp,*normal);
+	if(fabs(dotto)<.01) {
+	    const float len1 = sqrt(vdot(shadowRay.d, shadowRay.d));
+	    const float len2 = sqrt(vdot(*normal, *normal));
+	    const float len3 = sqrt(vdot(prevRay.d, prevRay.d));
+	    const float costheta1 = (vdot(shadowRay.d,*normal)/(len1*len2));
+	    const float costheta2 = (vdot(prevRay.d,*normal)/(len3*len2));
+	    if(fabs(costheta1-costheta2)<.01) {
+	        vsmul(Ld,M_PI,*throughput)
+	        vmul(*rad,*rad,Ld);
+	    } else {
+	        return;
+	    }
+	} else return;
 
-			  const float Wf=invWidth*1.048*width/2.;
-			  const float Hf=(invHeight*0.785*height/2.);
-						
-			  if ((xp<Wf)&&(xp>-Wf)&&(yp<(Hf-0))&&(yp>(-Hf+0))) {
-				pixx=((xp+Wf)/(invWidth*1.048))+.5;
-				pixy=((yp+Hf)/(invHeight*0.785)+.5);
-				pixId=pixy*width+pixx;
-				 if (counter[pixId]>0) 
-					{
-					Vec tmpc;
-					vassign(tmpc,colors[pixId]);
-					colors[pixId].x=(colors[pixId].x*counter[pixId]+Ld.x)/(counter[pixId]+1);
-					if(fabs(colors[pixId].x-tmpc.x)>maxdiff)
-						maxdiff=fabs(colors[pixId].x-tmpc.x);
-					colors[pixId].y=(colors[pixId].y*counter[pixId]+Ld.y)/(counter[pixId]+1);
-					if(fabs(colors[pixId].y-tmpc.y)>maxdiff)
-						maxdiff=fabs(colors[pixId].y-tmpc.y);
-					colors[pixId].z=(colors[pixId].z*counter[pixId]+Ld.z)/(counter[pixId]+1);
-					if(fabs(colors[pixId].z-tmpc.z)>maxdiff)
-						maxdiff=fabs(colors[pixId].z-tmpc.z);
-				} else
-					colors[pixId]=Ld;
-				
-					pixels[pixId]=toInt(colors[pixId].x)|(toInt(colors[pixId].y)<<8)|(toInt(colors[pixId].z)<<16);
-				
-				counter[pixId]+=1;
-				
-			   }
-			}
-		*/	
+	}
+
+	vassign(Ld,*rad);
+
+
+	vsmul(nega,-1,camera.x);
+	emme.x=vdot(nega,camera.orig);
+	vsmul(nega,-1,camera.y);
+	emme.y=vdot(nega,camera.orig);
+	vsmul(nega,-1,camera.dir);
+	emme.z=vdot(nega,camera.orig);
+	temp.x=vdot(camera.x,*hitPoint)+emme.x;
+	temp.y=vdot(camera.y,*hitPoint)+emme.y;
+	temp.z=vdot(camera.dir,*hitPoint)+emme.z;
+	if(temp.z>0){
+	  xp=temp.x*10/temp.z;
+	  yp=temp.y*10/temp.z;
+
+	  const float Wf=invWidth*1.048*width/2.;
+	  const float Hf=(invHeight*0.785*height/2.);
+
+	  if ((xp<Wf)&&(xp>-Wf)&&(yp<(Hf-0))&&(yp>(-Hf+0))) {
+	    pixx=((xp+Wf)/(invWidth*1.048))+.5;
+	    pixy=((yp+Hf)/(invHeight*0.785)+.5);
+	    pixId=pixy*width+pixx;
+	     if (counter[pixId]>0)
+	        {
+	        Vec tmpc;
+	        vassign(tmpc,colors[pixId]);
+	        colors[pixId].x=(colors[pixId].x*counter[pixId]+Ld.x)/(counter[pixId]+1);
+	        if(fabs(colors[pixId].x-tmpc.x)>maxdiff)
+	            maxdiff=fabs(colors[pixId].x-tmpc.x);
+	        colors[pixId].y=(colors[pixId].y*counter[pixId]+Ld.y)/(counter[pixId]+1);
+	        if(fabs(colors[pixId].y-tmpc.y)>maxdiff)
+	            maxdiff=fabs(colors[pixId].y-tmpc.y);
+	        colors[pixId].z=(colors[pixId].z*counter[pixId]+Ld.z)/(counter[pixId]+1);
+	        if(fabs(colors[pixId].z-tmpc.z)>maxdiff)
+	            maxdiff=fabs(colors[pixId].z-tmpc.z);
+	    } else
+	        colors[pixId]=Ld;
+
+	        pixels[pixId]=toInt(colors[pixId].x)|(toInt(colors[pixId].y)<<8)|(toInt(colors[pixId].z)<<16);
+
+	    counter[pixId]+=1;
+
+	   }
+	}
+*/
 }
 
 static void RadianceLightTracing(
-	const Sphere *spheres,
-	const unsigned int sphereCount,
-	const Ray *startRay,
-	unsigned int *seed0, unsigned int *seed1,
-	const Sphere *inilight) {
-	Ray currentRay; rassign(currentRay, *startRay);
-	Vec rad; 
-	Vec throughput; //vassign(throughput, rad);
-	Sphere light; light=*inilight;
+    const Sphere* spheres,
+    const unsigned int sphereCount,
+    const Ray* startRay,
+    unsigned int* seed0, unsigned int* seed1,
+    const Sphere* inilight)
+{
+	Ray currentRay;
+	rassign(currentRay, *startRay);
+	Vec rad;
+	Vec throughput; // vassign(throughput, rad);
+	Sphere light;
+	light = *inilight;
 	vassign(rad, light.e);
 	vassign(throughput, light.e);
 	vnorm(throughput);
-	vsmul(rad,1./2,rad);
+	vsmul(rad, 1. / 2, rad);
 
 	unsigned int depth = 1;
-	for (;; ++depth) {
+	for (;; ++depth)
+	{
 		// Removed Russian Roulette in order to improve execution on SIMT
-		if (depth>50||viszero(rad)) {
-			avg_depth=(avg_depth*depth_count+depth)/(depth_count+1);
+		if (depth > 50 || viszero(rad))
+		{
+			avg_depth = (avg_depth * depth_count + depth) / (depth_count + 1);
 			depth_count++;
 			return;
 		}
 
-		float t; /* distance to intersection */
+		float t;             /* distance to intersection */
 		unsigned int id = 0; /* id of intersected object */
-		if (!Intersect(spheres, sphereCount, &currentRay, &t, &id)) {
+		if (!Intersect(spheres, sphereCount, &currentRay, &t, &id))
+		{
 			return;
 		}
 
-		const Sphere *obj = &spheres[id]; /* the hit object */
-		if(!viszero(obj->e)){
+		const Sphere* obj = &spheres[id]; /* the hit object */
+		if (!viszero(obj->e))
+		{
 			return;
 		}
 
@@ -349,24 +377,26 @@ static void RadianceLightTracing(
 		const float invSignDP = -1.f * sign(dp);
 		vsmul(nl, invSignDP, normal);
 
-		if (obj->refl == DIFF) { /* Ideal DIFFUSE reflection */
+		if (obj->refl == DIFF)
+		{ /* Ideal DIFFUSE reflection */
 			vmul(throughput, throughput, obj->c);
 
 			/* Direct lighting component */
 
 			unsigned int id2;
 			Ray eyeray;
-			eyeray.o=camera.orig;
+			eyeray.o = camera.orig;
 			vsub(eyeray.d, hitPoint, camera.orig);
 			const float len = sqrt(vdot(eyeray.d, eyeray.d));
 			vsmul(eyeray.d, 1.f / len, eyeray.d);
 			Intersect(spheres, sphereCount, &eyeray, &t, &id2);
 
-			if(id2==id){
+			if (id2 == id)
+			{
 
-			//Vec Ld;
-				
-			SamplePixels(&hitPoint, &rad, &throughput,0,&normal,currentRay);
+				// Vec Ld;
+
+				SamplePixels(&hitPoint, &rad, &throughput, 0, &normal, currentRay);
 			}
 
 			/* Diffuse component */
@@ -375,12 +405,16 @@ static void RadianceLightTracing(
 			float r2 = GetRandom(seed0, seed1);
 			float r2s = sqrt(r2);
 
-			Vec w; vassign(w, nl);
+			Vec w;
+			vassign(w, nl);
 
 			Vec u, a;
-			if (fabs(w.x) > .1f) {
+			if (fabs(w.x) > .1f)
+			{
 				vinit(a, 0.f, 1.f, 0.f);
-			} else {
+			}
+			else
+			{
 				vinit(a, 1.f, 0.f, 0.f);
 			}
 			vxcross(u, a, w);
@@ -399,26 +433,31 @@ static void RadianceLightTracing(
 			currentRay.o = hitPoint;
 			currentRay.d = newDir;
 
-			light=*obj;
+			light = *obj;
 
 			continue;
-		} else if (obj->refl == SPEC) { /* Ideal SPECULAR reflection */
+		}
+		else if (obj->refl == SPEC)
+		{ /* Ideal SPECULAR reflection */
 
 			Vec newDir;
-			vsmul(newDir,  2.f * vdot(normal, currentRay.d), normal);
+			vsmul(newDir, 2.f * vdot(normal, currentRay.d), normal);
 			vsub(newDir, currentRay.d, newDir);
 
 			vmul(throughput, throughput, obj->c);
 
 			rinit(currentRay, hitPoint, newDir);
 			continue;
-		} else {
+		}
+		else
+		{
 
 			Vec newDir;
-			vsmul(newDir,  2.f * vdot(normal, currentRay.d), normal);
+			vsmul(newDir, 2.f * vdot(normal, currentRay.d), normal);
 			vsub(newDir, currentRay.d, newDir);
 
-			Ray reflRay; rinit(reflRay, hitPoint, newDir); /* Ideal dielectric REFRACTION */
+			Ray reflRay;
+			rinit(reflRay, hitPoint, newDir);  /* Ideal dielectric REFRACTION */
 			int into = (vdot(normal, nl) > 0); /* Ray from outside going in? */
 
 			float nc = 1.f;
@@ -427,7 +466,8 @@ static void RadianceLightTracing(
 			float ddn = vdot(currentRay.d, nl);
 			float cos2t = 1.f - nnt * nnt * (1.f - ddn * ddn);
 
-			if (cos2t < 0.f)  { /* Total internal reflection */
+			if (cos2t < 0.f)
+			{ /* Total internal reflection */
 				vmul(throughput, throughput, obj->c);
 
 				rassign(currentRay, reflRay);
@@ -447,19 +487,22 @@ static void RadianceLightTracing(
 			float R0 = a * a / (b * b);
 			float c = 1 - (into ? -ddn : vdot(transDir, normal));
 
-			float Re = R0 + (1 - R0) * c * c * c * c*c;
+			float Re = R0 + (1 - R0) * c * c * c * c * c;
 			float Tr = 1.f - Re;
 			float P = .25f + .5f * Re;
 			float RP = Re / P;
 			float TP = Tr / (1.f - P);
 
-			if (GetRandom(seed0, seed1) < P) { /* R.R. */
+			if (GetRandom(seed0, seed1) < P)
+			{ /* R.R. */
 				vsmul(throughput, RP, throughput);
 				vmul(throughput, throughput, obj->c);
 
 				rassign(currentRay, reflRay);
 				continue;
-			} else {
+			}
+			else
+			{
 				vsmul(throughput, TP, throughput);
 				vmul(throughput, throughput, obj->c);
 
@@ -472,37 +515,44 @@ static void RadianceLightTracing(
 
 static void RadiancePathTracing(
 #ifdef GPU_KERNEL
-OCL_CONSTANT_BUFFER
+    OCL_CONSTANT_BUFFER
 #endif
-	const Sphere *spheres,
-	const unsigned int sphereCount,
-	const Ray *startRay,
-	unsigned int *seed0, unsigned int *seed1,
-	Vec *result) {
-	Ray currentRay; rassign(currentRay, *startRay);
-	Vec rad; vinit(rad, 0.f, 0.f, 0.f);
-	Vec throughput; vinit(throughput, 1.f, 1.f, 1.f);
+    const Sphere* spheres,
+    const unsigned int sphereCount,
+    const Ray* startRay,
+    unsigned int* seed0, unsigned int* seed1,
+    Vec* result)
+{
+	Ray currentRay;
+	rassign(currentRay, *startRay);
+	Vec rad;
+	vinit(rad, 0.f, 0.f, 0.f);
+	Vec throughput;
+	vinit(throughput, 1.f, 1.f, 1.f);
 
 	unsigned int depth = 0;
 	int specularBounce = 1;
-	for (;; ++depth) {
+	for (;; ++depth)
+	{
 		// Removed Russian Roulette in order to improve execution on SIMT
-		if (depth > 6) {
+		if (depth > 6)
+		{
 			*result = rad;
 			return;
 		}
 
-		float t; /* distance to intersection */
+		float t;             /* distance to intersection */
 		unsigned int id = 0; /* id of intersected object */
-		if (!Intersect(spheres, sphereCount, &currentRay, &t, &id)) {
+		if (!Intersect(spheres, sphereCount, &currentRay, &t, &id))
+		{
 			*result = rad; /* if miss, return */
 			return;
 		}
 
 #ifdef GPU_KERNEL
-OCL_CONSTANT_BUFFER
+		OCL_CONSTANT_BUFFER
 #endif
-		const Sphere *obj = &spheres[id]; /* the hit object */
+		const Sphere* obj = &spheres[id]; /* the hit object */
 
 		Vec hitPoint;
 		vsmul(hitPoint, t, currentRay.d);
@@ -520,10 +570,13 @@ OCL_CONSTANT_BUFFER
 		vsmul(nl, invSignDP, normal);
 
 		/* Add emitted light */
-		Vec eCol; vassign(eCol, obj->e);
-		if (!viszero(eCol)) {
-			if (specularBounce) {
-				vsmul(eCol, 10*fabs(dp), eCol);
+		Vec eCol;
+		vassign(eCol, obj->e);
+		if (!viszero(eCol))
+		{
+			if (specularBounce)
+			{
+				vsmul(eCol, 10 * fabs(dp), eCol);
 				vmul(eCol, throughput, eCol);
 				vadd(rad, rad, eCol);
 			}
@@ -532,7 +585,8 @@ OCL_CONSTANT_BUFFER
 			return;
 		}
 
-		if (obj->refl == DIFF) { /* Ideal DIFFUSE reflection */
+		if (obj->refl == DIFF)
+		{ /* Ideal DIFFUSE reflection */
 			specularBounce = 0;
 			vmul(throughput, throughput, obj->c);
 
@@ -549,12 +603,16 @@ OCL_CONSTANT_BUFFER
 			float r2 = GetRandom(seed0, seed1);
 			float r2s = sqrt(r2);
 
-			Vec w; vassign(w, nl);
+			Vec w;
+			vassign(w, nl);
 
 			Vec u, a;
-			if (fabs(w.x) > .1f) {
+			if (fabs(w.x) > .1f)
+			{
 				vinit(a, 0.f, 1.f, 0.f);
-			} else {
+			}
+			else
+			{
 				vinit(a, 1.f, 0.f, 0.f);
 			}
 			vxcross(u, a, w);
@@ -573,25 +631,30 @@ OCL_CONSTANT_BUFFER
 			currentRay.o = hitPoint;
 			currentRay.d = newDir;
 			continue;
-		} else if (obj->refl == SPEC) { /* Ideal SPECULAR reflection */
+		}
+		else if (obj->refl == SPEC)
+		{ /* Ideal SPECULAR reflection */
 			specularBounce = 1;
 
 			Vec newDir;
-			vsmul(newDir,  2.f * vdot(normal, currentRay.d), normal);
+			vsmul(newDir, 2.f * vdot(normal, currentRay.d), normal);
 			vsub(newDir, currentRay.d, newDir);
 
 			vmul(throughput, throughput, obj->c);
 
 			rinit(currentRay, hitPoint, newDir);
 			continue;
-		} else {
+		}
+		else
+		{
 			specularBounce = 1;
 
 			Vec newDir;
-			vsmul(newDir,  2.f * vdot(normal, currentRay.d), normal);
+			vsmul(newDir, 2.f * vdot(normal, currentRay.d), normal);
 			vsub(newDir, currentRay.d, newDir);
 
-			Ray reflRay; rinit(reflRay, hitPoint, newDir); /* Ideal dielectric REFRACTION */
+			Ray reflRay;
+			rinit(reflRay, hitPoint, newDir);  /* Ideal dielectric REFRACTION */
 			int into = (vdot(normal, nl) > 0); /* Ray from outside going in? */
 
 			float nc = 1.f;
@@ -600,7 +663,8 @@ OCL_CONSTANT_BUFFER
 			float ddn = vdot(currentRay.d, nl);
 			float cos2t = 1.f - nnt * nnt * (1.f - ddn * ddn);
 
-			if (cos2t < 0.f)  { /* Total internal reflection */
+			if (cos2t < 0.f)
+			{ /* Total internal reflection */
 				vmul(throughput, throughput, obj->c);
 
 				rassign(currentRay, reflRay);
@@ -620,19 +684,22 @@ OCL_CONSTANT_BUFFER
 			float R0 = a * a / (b * b);
 			float c = 1 - (into ? -ddn : vdot(transDir, normal));
 
-			float Re = R0 + (1 - R0) * c * c * c * c*c;
+			float Re = R0 + (1 - R0) * c * c * c * c * c;
 			float Tr = 1.f - Re;
 			float P = .25f + .5f * Re;
 			float RP = Re / P;
 			float TP = Tr / (1.f - P);
 
-			if (GetRandom(seed0, seed1) < P) { /* R.R. */
+			if (GetRandom(seed0, seed1) < P)
+			{ /* R.R. */
 				vsmul(throughput, RP, throughput);
 				vmul(throughput, throughput, obj->c);
 
 				rassign(currentRay, reflRay);
 				continue;
-			} else {
+			}
+			else
+			{
 				vsmul(throughput, TP, throughput);
 				vmul(throughput, throughput, obj->c);
 
@@ -645,37 +712,44 @@ OCL_CONSTANT_BUFFER
 
 static void RadianceDirectLighting(
 #ifdef GPU_KERNEL
-OCL_CONSTANT_BUFFER
+    OCL_CONSTANT_BUFFER
 #endif
-	const Sphere *spheres,
-	const unsigned int sphereCount,
-	const Ray *startRay,
-	unsigned int *seed0, unsigned int *seed1,
-	Vec *result) {
-	Ray currentRay; rassign(currentRay, *startRay);
-	Vec rad; vinit(rad, 0.f, 0.f, 0.f);
-	Vec throughput; vinit(throughput, 1.f, 1.f, 1.f);
+    const Sphere* spheres,
+    const unsigned int sphereCount,
+    const Ray* startRay,
+    unsigned int* seed0, unsigned int* seed1,
+    Vec* result)
+{
+	Ray currentRay;
+	rassign(currentRay, *startRay);
+	Vec rad;
+	vinit(rad, 0.f, 0.f, 0.f);
+	Vec throughput;
+	vinit(throughput, 1.f, 1.f, 1.f);
 
 	unsigned int depth = 0;
 	int specularBounce = 1;
-	for (;; ++depth) {
+	for (;; ++depth)
+	{
 		// Removed Russian Roulette in order to improve execution on SIMT
-		if (depth > 6) {
+		if (depth > 6)
+		{
 			*result = rad;
 			return;
 		}
 
-		float t; /* distance to intersection */
+		float t;             /* distance to intersection */
 		unsigned int id = 0; /* id of intersected object */
-		if (!Intersect(spheres, sphereCount, &currentRay, &t, &id)) {
+		if (!Intersect(spheres, sphereCount, &currentRay, &t, &id))
+		{
 			*result = rad; /* if miss, return */
 			return;
 		}
 
 #ifdef GPU_KERNEL
-OCL_CONSTANT_BUFFER
+		OCL_CONSTANT_BUFFER
 #endif
-		const Sphere *obj = &spheres[id]; /* the hit object */
+		const Sphere* obj = &spheres[id]; /* the hit object */
 
 		Vec hitPoint;
 		vsmul(hitPoint, t, currentRay.d);
@@ -693,9 +767,12 @@ OCL_CONSTANT_BUFFER
 		vsmul(nl, invSignDP, normal);
 
 		/* Add emitted light */
-		Vec eCol; vassign(eCol, obj->e);
-		if (!viszero(eCol)) {
-			if (specularBounce) {
+		Vec eCol;
+		vassign(eCol, obj->e);
+		if (!viszero(eCol))
+		{
+			if (specularBounce)
+			{
 				vsmul(eCol, fabs(dp), eCol);
 				vmul(eCol, throughput, eCol);
 				vadd(rad, rad, eCol);
@@ -705,7 +782,8 @@ OCL_CONSTANT_BUFFER
 			return;
 		}
 
-		if (obj->refl == DIFF) { /* Ideal DIFFUSE reflection */
+		if (obj->refl == DIFF)
+		{ /* Ideal DIFFUSE reflection */
 			specularBounce = 0;
 			vmul(throughput, throughput, obj->c);
 
@@ -718,25 +796,30 @@ OCL_CONSTANT_BUFFER
 
 			*result = rad;
 			return;
-		} else if (obj->refl == SPEC) { /* Ideal SPECULAR reflection */
+		}
+		else if (obj->refl == SPEC)
+		{ /* Ideal SPECULAR reflection */
 			specularBounce = 1;
 
 			Vec newDir;
-			vsmul(newDir,  2.f * vdot(normal, currentRay.d), normal);
+			vsmul(newDir, 2.f * vdot(normal, currentRay.d), normal);
 			vsub(newDir, currentRay.d, newDir);
 
 			vmul(throughput, throughput, obj->c);
 
 			rinit(currentRay, hitPoint, newDir);
 			continue;
-		} else {
+		}
+		else
+		{
 			specularBounce = 1;
 
 			Vec newDir;
-			vsmul(newDir,  2.f * vdot(normal, currentRay.d), normal);
+			vsmul(newDir, 2.f * vdot(normal, currentRay.d), normal);
 			vsub(newDir, currentRay.d, newDir);
 
-			Ray reflRay; rinit(reflRay, hitPoint, newDir); /* Ideal dielectric REFRACTION */
+			Ray reflRay;
+			rinit(reflRay, hitPoint, newDir);  /* Ideal dielectric REFRACTION */
 			int into = (vdot(normal, nl) > 0); /* Ray from outside going in? */
 
 			float nc = 1.f;
@@ -745,7 +828,8 @@ OCL_CONSTANT_BUFFER
 			float ddn = vdot(currentRay.d, nl);
 			float cos2t = 1.f - nnt * nnt * (1.f - ddn * ddn);
 
-			if (cos2t < 0.f)  { /* Total internal reflection */
+			if (cos2t < 0.f)
+			{ /* Total internal reflection */
 				vmul(throughput, throughput, obj->c);
 
 				rassign(currentRay, reflRay);
@@ -765,19 +849,22 @@ OCL_CONSTANT_BUFFER
 			float R0 = a * a / (b * b);
 			float c = 1 - (into ? -ddn : vdot(transDir, normal));
 
-			float Re = R0 + (1 - R0) * c * c * c * c*c;
+			float Re = R0 + (1 - R0) * c * c * c * c * c;
 			float Tr = 1.f - Re;
 			float P = .25f + .5f * Re;
 			float RP = Re / P;
 			float TP = Tr / (1.f - P);
 
-			if (GetRandom(seed0, seed1) < P) { /* R.R. */
+			if (GetRandom(seed0, seed1) < P)
+			{ /* R.R. */
 				vsmul(throughput, RP, throughput);
 				vmul(throughput, throughput, obj->c);
 
 				rassign(currentRay, reflRay);
 				continue;
-			} else {
+			}
+			else
+			{
 				vsmul(throughput, TP, throughput);
 				vmul(throughput, throughput, obj->c);
 
@@ -788,5 +875,4 @@ OCL_CONSTANT_BUFFER
 	}
 }
 
-#endif	/* _GEOMFUNC_H */
-
+#endif /* _GEOMETRY_FUNCTIONS_H */

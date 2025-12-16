@@ -1,3 +1,5 @@
+// Renamed from display_func.c to display_functions.c for clarity
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -469,36 +471,4 @@ void SpecialFunc(int key, int x, int y)
 	default:
 		break;
 	}
-}
-
-void InitGlut(int argc, char* argv[], char* window_title)
-{
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-	glutInitWindowSize(width, height);
-
-	glutCreateWindow(window_title);
-
-	glutReshapeFunc(ReshapeFunc);
-	glutKeyboardFunc(KeyFunc);
-	glutSpecialFunc(SpecialFunc);
-	glutDisplayFunc(DisplayFunc);
-	glutIdleFunc(IdleFunc);
-
-	glewInit();
-	if (!glewIsSupported("GL_VERSION_2_0 "))
-	{
-		fprintf(stderr, "ERROR: Support for necessary OpenGL extensions missing.");
-	}
-
-	glViewport(0, 0, width, height);
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glDisable(GL_DEPTH_TEST);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
 }

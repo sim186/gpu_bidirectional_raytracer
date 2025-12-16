@@ -1,15 +1,9 @@
-#ifndef _CAMERA_H
-#define	_CAMERA_H
+#pragma once
+#include "vector_math.h"
 
-#include "vec.h"
-
-
-typedef struct {
-	/* User defined values */
+// Camera structure
+typedef struct
+{
 	Vec orig, target;
-	/* Calculated values */
 	Vec dir, x, y;
 } Camera;
-
-#endif	/* _CAMERA_H */
-

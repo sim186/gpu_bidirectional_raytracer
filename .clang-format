@@ -1,17 +1,3 @@
----
-BasedOnStyle: LLVM
-IndentWidth: 4
-UseTab: ForIndentation
-ColumnLimit: 0
-PointerAlignment: Left
-DerivePointerAlignment: false
-AllowShortIfStatementsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: Inline
-AllowShortBlocksOnASingleLine: false
-SortIncludes: false
-BreakBeforeBraces: Allman
-Language: Cpp
-...
 BasedOnStyle: LLVM
 IndentWidth: 4
 TabWidth: 4
@@ -19,6 +5,10 @@ UseTab: ForIndentation
 ColumnLimit: 0
 DerivePointerAlignment: false
 PointerAlignment: Left
-AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortBlocksOnASingleLine: false
 SortIncludes: false
+BreakBeforeBraces: Allman
 Language: Cpp
+...
