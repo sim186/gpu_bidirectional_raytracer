@@ -16,6 +16,7 @@ SmallptGPU-v1.6
 preprocessed_rendering_kernel.cl
 a.out
 core
+build
 
 # IDE and editor files
 .vscode/

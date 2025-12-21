@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  smallpt_gpu:
+    build: .
+    volumes:
+      - .:/workspace
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: bash -c "mkdir -p build && cd build && cmake .. && make && ./smallpt_gpu"
+    tty: true

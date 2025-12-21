@@ -1,0 +1,15 @@
+{
+	"name": "GPU Raytracer Dev",
+	"build": {
+		"dockerfile": "../Dockerfile",
+		"context": ".."
+	},
+	"extensions": [
+		"ms-vscode.cpptools",
+		"llvm-vs-code-extensions.vscode-clangd",
+		"nschweitzer.cmake-tools"
+	],
+	"settings": {
+		"C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+	}
+}
